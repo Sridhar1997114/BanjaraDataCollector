@@ -371,6 +371,20 @@
                 translations = JSON.parse(saved);
             }
 
+            // MERGE hardcoded data (Restores lost progress if local is empty)
+            rawData.forEach(item => {
+                if (!translations[item.id]) {
+                    translations[item.id] = { banjara: '', notes: '' };
+                }
+                // If local is empty but hardcoded exists, use hardcoded
+                if (!translations[item.id].banjara && item.banjara) {
+                    translations[item.id].banjara = item.banjara;
+                }
+                if (!translations[item.id].notes && item.notes) {
+                    translations[item.id].notes = item.notes;
+                }
+            });
+
             renderList();
             updateStats();
 
