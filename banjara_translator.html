@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banjara Translation Studio</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .stats {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.secondary {
+            background-color: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        button.secondary:hover {
+            background-color: var(--bg);
+        }
+
+        button.success {
+            background-color: var(--success);
+        }
+
+        button.success:hover {
+            background-color: #059669;
+        }
+
+        .translation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .card.done {
+            border-color: var(--success);
+            background-color: #f0fdf4;
+        }
+
+        .card:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.1);
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .id-badge {
+            background: var(--bg);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .english-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .notes-input {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .status-icon {
+            font-size: 1.2rem;
+            display: none;
+        }
+
+        .card.done .status-icon {
+            display: block;
+        }
+
+        /* Floating Save Indicator */
+        #saveIndicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--text);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        #saveIndicator.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <div>
+                <h1>Banjara Translation Studio</h1>
+                <div class="stats" id="progressStats">Loading...</div>
+            </div>
+            <div class="controls">
+                <button class="secondary" onclick="exportData()">📥 Export CSV</button>
+                <button class="secondary" onclick="clearData()">🗑️ Reset</button>
+            </div>
+        </header>
+
+        <div class="translation-list" id="listContainer">
+            <!-- Items injected here -->
+        </div>
+    </div>
+
+    <div id="saveIndicator">Saved</div>
+
+    <script>
+        // --- DATA ---
+        // Extracted from full_english_script.md
+        const rawData = [
+            { id: 153, en: "A nomadic community, discriminated against everywhere." },
+            { id: 154, en: "Our spiritual leader, receiving royal recognition." },
+            { id: 155, en: "From one of India's most powerful rulers." },
+            { id: 156, en: "This was not just personal honor." },
+            { id: 157, en: "This was recognition of our entire community's dignity." },
+            { id: 158, en: "This is when the title \"Maharaj\" became universal among our people." },
+            { id: 159, en: "You call him Maharaj." },
+            { id: 160, en: "Your parents call him Maharaj." },
+            { id: 161, en: "Your grandparents called him Maharaj." },
+            { id: 162, en: "But do you know precisely why?" },
+            { id: 163, en: "Maharaj means \"Great King\" in Sanskrit." },
+            { id: 164, en: "Yet he never wore a crown or ruled a kingdom." },
+            { id: 165, en: "There are five documented reasons why our community bestowed this highest title upon him." },
+            { id: 166, en: "Reason number one: Extraordinary Knowledge and Wisdom." },
+            { id: 167, en: "He mastered Ayurveda and Naturopathy to a degree that astounded royal physicians." },
+            { id: 168, en: "He created a comprehensive ethical framework—the 22 Seva Bollies." },
+            { id: 169, en: "He unified fragmented Banjara clans across vast geographical regions." },
+            { id: 170, en: "He provided guidance on health, family matters, justice, and spirituality." },
+            { id: 171, en: "His wisdom elevated our entire community." },
+            { id: 172, en: "Reason number two: Social Revolution." },
+            { id: 173, en: "Sant Sevalal Maharaj accomplished what seemed impossible." },
+            { id: 174, en: "He challenged the caste hierarchy that oppressed us." },
+            { id: 175, en: "He negotiated with the British colonial administration for our rights." },
+            { id: 176, en: "He secured agreements with the Nizam of Hyderabad." },
+            { id: 177, en: "He dealt with Mysore rulers on equal terms." },
+            { id: 178, en: "He created the thanda system—transforming us from nomads to settled communities." },
+            { id: 179, en: "Before him, we wandered without permanent homes." },
+            { id: 180, en: "After him, we had thandas, villages, identity, and legal recognition." },
+            { id: 181, en: "Reason number three: Divine Powers." },
+            { id: 182, en: "The traditional epic Sevabhaya documents miraculous healings." },
+            { id: 183, en: "Prophecies that manifested." },
+            { id: 184, en: "Divine interventions witnessed by thousands." },
+            { id: 185, en: "Our community believes he was an incarnation of Lord Shiva, blessed by Goddess Mariamma Yaadi." },
+            { id: 186, en: "Reason number four: Spiritual Tradition." },
+            { id: 187, en: "India has a sacred tradition of honoring enlightened teachers as Maharaj." },
+            { id: 188, en: "Vallabhacharya—called Mahaprabhu." },
+            { id: 189, en: "Chaitanya Mahaprabhu—revered across Bengal." },
+            { id: 190, en: "Sant Tukaram—honored by royalty." },
+            { id: 191, en: "Sant Sevalal Maharaj stands in this illustrious lineage of Bhakti saints." },
+            { id: 192, en: "Reason number five: Political Authority." },
+            { id: 193, en: "This is perhaps most significant." },
+            { id: 194, en: "He commanded respect from colonial powers." },
+            { id: 195, en: "He sat in negotiations with the British as an equal." },
+            { id: 196, en: "He secured land and grazing rights when our community had none." },
+            { id: 197, en: "He protected our interests when we were labeled criminals." },
+            { id: 198, en: "A man who could defend his people before empires." },
+            { id: 199, en: "A man who secured rights through wisdom, not violence." },
+            { id: 200, en: "That is Maharaj." },
+            { id: 201, en: "That is kingship without a throne." },
+            { id: 202, en: "In every Banjara thanda, you see two temples with two flags." },
+            { id: 203, en: "This is Sant Sevalal Maharaj's legacy." },
+            { id: 204, en: "The RED or PINK flag represents Goddess Jagadamba." },
+            { id: 205, en: "She accepts non-vegetarian offerings, reflecting our traditional practices." },
+            { id: 206, en: "The WHITE flag—the Sevadhwaj—represents Sant Sevalal Maharaj." },
+            { id: 207, en: "Strictly vegetarian, symbolizing absolute purity and celibacy." },
+            { id: 208, en: "This dual system is unique to our community." },
+            { id: 209, en: "It honors both the divine feminine power and our Guru's teachings." },
+            { id: 210, en: "The white flag represents his values." },
+            { id: 211, en: "Purity." },
+            { id: 212, en: "Celibacy." },
+            { id: 213, en: "Non-violence." },
+            { id: 214, en: "Peace." },
+            { id: 215, en: "When you see that white flag flying in your thanda, remember his sacrifice for our dignity." },
+            { id: 216, en: "After Hyderabad, Sant Sevalal Maharaj continued his mission across the Deccan." },
+            { id: 217, en: "Pakhala in Telangana." },
+            { id: 218, en: "Adilabad in Telangana." },
+            { id: 219, en: "Mahur in Maharashtra." },
+            { id: 220, en: "Unkeshwar, where a sculpture resembling him exists to this day." },
+            { id: 221, en: "In every place, he transformed communities." },
+            { id: 222, en: "He eliminated superstitions." },
+            { id: 223, en: "He established ethical practices." },
+            { id: 224, en: "He gave our people hope and direction." },
+            { id: 225, en: "4 December 1806." },
+            { id: 226, en: "Ruhigarh in Yavatmal district, Maharashtra." },
+            { id: 227, en: "At the age of 67." },
+            { id: 228, en: "Sant Sevalal Maharaj left his physical body." },
+            { id: 229, en: "Historical texts describe his death as occurring \"in a mystic way.\"" },
+            { id: 230, en: "Meaning he consciously chose his departure." },
+            { id: 231, en: "His legacy did not end with his physical departure." },
+            { id: 232, en: "Around 1900 CE, a devoted follower named Ratansingh Baba constructed his samadhi." },
+            { id: 233, en: "His final resting place." },
+            { id: 234, en: "At Pohradevi in Washim district, Maharashtra." },
+            { id: 235, en: "Today, we call this sacred site \"Banjara Kashi.\"" },
+            { id: 236, en: "Lakhs of our community members visit annually." },
+            { id: 237, en: "The site now features the Banjara Virasat Museum." },
+            { id: 238, en: "A 150-foot tall Sevadhwaj." },
+            { id: 239, en: "An equestrian statue of our Maharaj." },
+            { id: 240, en: "Daily laser light and music shows depicting his life." },
+            { id: 241, en: "13 galleries documenting our history." },
+            { id: 242, en: "An adjacent temple to Goddess Jagadamba." },
+            { id: 243, en: "This is not merely a pilgrimage site." },
+            { id: 244, en: "This is the spiritual capital of our 12 crore community members worldwide." },
+            { id: 245, en: "For 217 years after his death, Sant Sevalal Maharaj's legacy remained within our community." },
+            { id: 246, en: "But 2023 marked a historic turning point." },
+            { id: 247, en: "For the first time in independent India's history, the Government of India celebrated his birth anniversary nationally." },
+            { id: 248, en: "His 284th birth anniversary." },
+            { id: 249, en: "Under the Azadi ka Amrit Mahotsav campaign." },
+            { id: 250, en: "Union Home Minister Amit Shah personally led year-long celebrations." },
+            { id: 251, en: "The government backed this recognition with substantial action." },
+            { id: 252, en: "The Sant Sevalal Maharaj Tanda Prosperity Scheme was launched." },
+            { id: 253, en: "500 crore rupees allocated for land rights documentation for Banjara families." },
+            { id: 254, en: "Educational institutions in thandas." },
+            { id: 255, en: "Upgrading thandas to revenue villages and Gram Panchayats." },
+            { id: 256, en: "After 220 years, our Maharaj's vision is being realized at the national level." },
+            { id: 257, en: "Our community is being SEEN, HEARD, and RESPECTED." },
+            { id: 258, en: "Brothers and sisters, here is the most important part." },
+            { id: 259, en: "Sant Sevalal Maharaj left us 22 core principles." },
+            { id: 260, en: "The Seva Bollies in our Gor Boli language." },
+            { id: 261, en: "These are not suggestions." },
+            { id: 262, en: "These are the ethical foundation of our community." },
+            { id: 263, en: "Seva Bolly number three: \"Provide water to the thirsty. Selling water is the biggest sin.\"" },
+            { id: 264, en: "He taught this in 1806." },
+            { id: 265, en: "Today, multinational corporations sell water while millions suffer thirst." },
+            { id: 266, en: "He was 220 years ahead of his time." },
+            { id: 267, en: "Seva Bolly number one: \"Protect the forest and environment. Destroying forests means destroying yourself.\"" },
+            { id: 268, en: "He taught environmental conservation when no one understood ecology." },
+            { id: 269, en: "Seva Bolly number ten: \"Women and girls are living goddesses.\"" },
+            { id: 270, en: "He established gender equality in the 18th century." },
+            { id: 271, en: "These 22 principles address environmental conservation, social justice, gender equality, family values, personal development, and cultural preservation." },
+            { id: 272, en: "In our next documentary, we will present all 22 Seva Bollies in complete detail." },
+            { id: 273, en: "How each one applies to your life today." },
+            { id: 274, en: "How to implement them in your family and thanda." },
+            { id: 275, en: "This is your heritage." },
+            { id: 276, en: "This is your identity." },
+            { id: 277, en: "This is your Dharmaguru's gift to you." },
+            { id: 278, en: "Preserve it." },
+            { id: 279, en: "Practice it." },
+            { id: 280, en: "Pass it to your children." },
+            { id: 281, en: "Jai Sant Sevalal Maharaj!" }
+        ];
+
+        // --- STATE ---
+        let translations = {};
+
+        // --- INIT ---
+        function init() {
+            // Load from local storage
+            const saved = localStorage.getItem('banjara_translations');
+            if (saved) {
+                translations = JSON.parse(saved);
+            }
+
+            renderList();
+            updateStats();
+
+            // Add visibility change listener (extra safety)
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === 'hidden') saveToLocal();
+            });
+        }
+
+        // --- RENDER ---
+        function renderList() {
+            const container = document.getElementById('listContainer');
+            container.innerHTML = rawData.map(item => {
+                const t = translations[item.id] || { banjara: '', notes: '' };
+                const isDone = t.banjara.trim().length > 0;
+
+                return `
+                <div class="card ${isDone ? 'done' : ''}" id="card-${item.id}">
+                    <div class="row">
+                        <div class="id-badge">#${item.id}</div>
+                        <div class="content">
+                            <div class="english-text">${item.en}</div>
+                            <input 
+                                type="text" 
+                                placeholder="Banjara Translation (Roman Script)" 
+                                value="${t.banjara.replace(/"/g, '&quot;')}"
+                                oninput="updateTranslation(${item.id}, 'banjara', this.value)"
+                            />
+                            <div class="meta-row">
+                                <input 
+                                    class="notes-input"
+                                    type="text" 
+                                    placeholder="Notes / Comments (Optional)" 
+                                    value="${t.notes.replace(/"/g, '&quot;')}"
+                                    oninput="updateTranslation(${item.id}, 'notes', this.value)"
+                                />
+                            </div>
+                        </div>
+                        <div class="status-icon">✅</div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // --- ACTIONS ---
+        function updateTranslation(id, field, value) {
+            if (!translations[id]) translations[id] = { banjara: '', notes: '' };
+            translations[id][field] = value;
+
+            // Visual Update (Card coloring)
+            const card = document.getElementById(`card-${id}`);
+            if (field === 'banjara') {
+                if (value.trim().length > 0) card.classList.add('done');
+                else card.classList.remove('done');
+            }
+
+            updateStats();
+            saveToLocal();
+        }
+
+        function saveToLocal() {
+            localStorage.setItem('banjara_translations', JSON.stringify(translations));
+            showSaveIndicator();
+        }
+
+        let saveTimeout;
+        function showSaveIndicator() {
+            const el = document.getElementById('saveIndicator');
+            el.classList.add('show');
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => el.classList.remove('show'), 1500);
+        }
+
+        function updateStats() {
+            const total = rawData.length;
+            const done = Object.values(translations).filter(t => t.banjara && t.banjara.trim().length > 0).length;
+            const pct = Math.round((done / total) * 100);
+            document.getElementById('progressStats').textContent = `${done} / ${total} Completed (${pct}%)`;
+        }
+
+        function exportData() {
+            const header = ["Original Id", "English Text", "Banjara Translation", "Notes"];
+            const rows = rawData.map(item => {
+                const t = translations[item.id] || { banjara: '', notes: '' };
+                return [
+                    item.id,
+                    `"${item.en.replace(/"/g, '""')}"`, // Escape quotes for CSV
+                    `"${t.banjara.replace(/"/g, '""')}"`,
+                    `"${t.notes.replace(/"/g, '""')}"`
+                ].join(',');
+            });
+
+            const csvContent = [header.join(','), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `banjara_translations_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearData() {
+            if (confirm("Are you sure? This will delete all your unsaved translations from this browser.")) {
+                localStorage.removeItem('banjara_translations');
+                translations = {};
+                renderList();
+                updateStats();
+            }
+        }
+
+        // Run
+        init();
+
+    </script>
+
+</body>
+
+</html>
