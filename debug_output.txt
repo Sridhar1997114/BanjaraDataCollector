@@ -1,0 +1,15 @@
+﻿DEBUG: Attaching suffix 'to' to 'chachaper' (isPlural: true)
+DEBUG: Result: 'chachaparun'
+DEBUG: Attaching suffix 'in' to 'koni' (isPlural: false)
+DEBUG: Result: 'konimaa'
+DEBUG: Attaching suffix 'speech' to 'guru' (isPlural: false)
+DEBUG: Result: 'guru thi'
+DEBUG: Attaching suffix 'in' to 'khetr' (isPlural: false)
+DEBUG: Result: 'khetrmaa'
+DEBUG: Attaching suffix 'in' to 'baageer' (isPlural: false)
+DEBUG: Result: 'baageermaa'
+DEBUG: Attaching suffix 'to' to 'bajar' (isPlural: false)
+DEBUG: Result: 'bajareen'
+DEBUG: Attaching suffix 'with' to 'chacharune' (isPlural: true)
+DEBUG: Result: 'chacharuntee'
+Scoring V2 complete. Final Score: 100%

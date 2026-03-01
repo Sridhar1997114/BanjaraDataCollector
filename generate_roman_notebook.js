@@ -1,0 +1,185 @@
+const fs = require('fs');
+
+const notebook = {
+    "cells": [
+        {
+            "cell_type": "markdown",
+            "metadata": {},
+            "source": [
+                "# Banjara AI Training (Roman Script)\n",
+                "\n",
+                "This notebook trains an AI model to translate English to Banjara in **Roman script** (English alphabet).\n",
+                "We use Google's **FLAN-T5-Small**, a powerful and efficient model that handles Roman text perfectly."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": null,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 1. Install Dependencies\n",
+                "!pip install transformers datasets evaluate accelerate sentencepiece"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": null,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 2. Unzip Dataset\n",
+                "# Upload your 'dataset.zip' to the Files section on the left before running this!\n",
+                "import os\n",
+                "if not os.path.exists('dataset'):\n",
+                "    !unzip dataset.zip"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": null,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 3. Load Data\n",
+                "from datasets import load_dataset\n",
+                "\n",
+                "# Point to the unzipped CSV files\n",
+                "dataset = load_dataset(\"csv\", data_files={\n",
+                "    \"train\": \"dataset/train/metadata.csv\",\n",
+                "    \"test\": \"dataset/test/metadata.csv\"\n",
+                "})\n",
+                "\n",
+                "print(\"Sample:\", dataset['train'][0])"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": null,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 4. Prepare Model (T5-Small)\n",
+                "from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, Seq2SeqTrainingArguments, Seq2SeqTrainer, DataCollatorForSeq2Seq\n",
+                "\n",
+                "model_checkpoint = \"google/flan-t5-small\"\n",
+                "tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)\n",
+                "model = AutoModelForSeq2SeqLM.from_pretrained(model_checkpoint)\n",
+                "\n",
+                "def preprocess_function(examples):\n",
+                "    # T5 expects a task prefix\n",
+                "    inputs = [\"translate English to Banjara: \" + doc for doc in examples[\"english\"]]\n",
+                "    model_inputs = tokenizer(inputs, max_length=128, truncation=True)\n",
+                "    \n",
+                "    labels = tokenizer(examples[\"banjara\"], max_length=128, truncation=True)\n",
+                "    model_inputs[\"labels\"] = labels[\"input_ids\"]\n",
+                "    return model_inputs\n",
+                "\n",
+                "tokenized_datasets = dataset.map(preprocess_function, batched=True)"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": null,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 5. Train\n",
+                "training_args = Seq2SeqTrainingArguments(\n",
+                "    output_dir=\"./banjara_roman_model\",\n",
+                "    eval_strategy=\"epoch\",\n",
+                "    learning_rate=3e-4, # T5 uses higher LR\n",
+                "    per_device_train_batch_size=8, # T5-small fits easily\n",
+                "    per_device_eval_batch_size=8,\n",
+                "    weight_decay=0.01,\n",
+                "    save_total_limit=2,\n",
+                "    num_train_epochs=15, # More epochs for better adaptation\n",
+                "    predict_with_generate=True,\n",
+                "    fp16=False, # T5 sometimes unstable with fp16 on T4, using fp32 is safe and fast enough for small model\n",
+                ")\n",
+                "\n",
+                "data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)\n",
+                "\n",
+                "trainer = Seq2SeqTrainer(\n",
+                "    model=model,\n",
+                "    args=training_args,\n",
+                "    train_dataset=tokenized_datasets[\"train\"],\n",
+                "    eval_dataset=tokenized_datasets[\"test\"],\n",
+                "    data_collator=data_collator,\n",
+                "    tokenizer=tokenizer,\n",
+                ")\n",
+                "\n",
+                "trainer.train()"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": null,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 6. Test Translation\n",
+                "from transformers import pipeline\n",
+                "\n",
+                "# Save locally first\n",
+                "trainer.save_model(\"./banjara_roman_final\")\n",
+                "tokenizer.save_pretrained(\"./banjara_roman_final\")\n",
+                "\n",
+                "translator = pipeline(\"translation\", model=\"./banjara_roman_final\", tokenizer=\"./banjara_roman_final\")\n",
+                "\n",
+                "test_sentences = [\n",
+                "    \"Where are you going?\",\n",
+                "    \"This food is very tasty.\",\n",
+                "    \"My stomach is aching.\",\n",
+                "    \"Can you give me some water?\",\n",
+                "    \"I am going to the village tomorrow.\",\n",
+                "]\n",
+                "\n",
+                "print(\"Model Predictions (Roman Script):\")\n",
+                "for sentence in test_sentences:\n",
+                "    # T5 needs the prefix during inference too\n",
+                "    input_text = \"translate English to Banjara: \" + sentence\n",
+                "    result = translator(input_text)[0]['translation_text']\n",
+                "    print(f\"En: {sentence}\")\n",
+                "    print(f\"Bj: {result}\")\n",
+                "    print(\"---\")"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": null,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 7. Save Model to Google Drive\n",
+                "from google.colab import drive\n",
+                "drive.mount('/content/drive')\n",
+                "!cp -r ./banjara_roman_final /content/drive/MyDrive/banjara_roman_model"
+            ]
+        }
+    ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "codemirror_mode": {
+                "name": "ipython",
+                "version": 3
+            },
+            "file_extension": ".py",
+            "mimetype": "text/x-python",
+            "name": "python",
+            "nbconvert_exporter": "python",
+            "pygments_lexer": "ipython3",
+            "version": "3.10.12"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 5
+};
+
+fs.writeFileSync('Banjara_Roman_Training.ipynb', JSON.stringify(notebook, null, 2));
+console.log('✅ Created Banjara_Roman_Training.ipynb');

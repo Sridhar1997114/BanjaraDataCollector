@@ -1,0 +1,14 @@
+--- Banjara Rule Verification --- 
+
+English: I am doing work
+Banjara: me kaam karro chu
+
+English: You are going to village
+Banjara: tu gaav jaaro chu
+
+English: He is playing football
+Banjara: vu football ramro che
+
+English: We are eating food
+Banjara: ham khana khaare cha
+

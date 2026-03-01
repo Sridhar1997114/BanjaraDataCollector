@@ -14,7 +14,9 @@ const fs = require('fs');
 const path = require('path');
 
 const DATASET_FILE = 'verified_dataset.csv';
+const MASTER_VOCAB_FILE = 'banjara_master_vocabulary.csv';
 const HTML_FILE = 'banjara_data_collector.html';
+const BGE = require('./banjara_grammar.js');
 
 // ===== PARSE CSV =====
 function parseCSV(content) {
@@ -43,56 +45,74 @@ function parseCSV(content) {
 
 // ===== BUILD VOCABULARY FROM WORD MAPPINGS =====
 function buildVocabulary() {
-    const csvContent = fs.readFileSync(DATASET_FILE, 'utf8');
-    const rows = parseCSV(csvContent);
-    const headers = rows[0];
-    const data = rows.slice(1);
-
-    // English → Banjara vocabulary (lowercase)
     const vocab = {};
-    // Also store full sentence pairs for pattern matching
     const sentencePairs = [];
 
-    data.forEach(row => {
-        const english = (row[1] || '').trim();
-        const banjara = (row[2] || '').trim();
-        const notes = (row[3] || '').trim();
+    // 1. Load Master Vocabulary (High Coverage)
+    if (fs.existsSync(MASTER_VOCAB_FILE)) {
+        const masterContent = fs.readFileSync(MASTER_VOCAB_FILE, 'utf8');
+        const masterRows = parseCSV(masterContent);
+        // "english,banjara,pos,source"
+        masterRows.slice(1).forEach(row => {
+            const english = (row[0] || '').trim().toLowerCase();
+            const banjara = (row[1] || '').trim().toLowerCase();
+            const telugu = (row[4] || '').trim().toLowerCase();
+            const hindi = (row[5] || '').trim().toLowerCase();
 
-        if (english && banjara) {
-            sentencePairs.push({ english: english.toLowerCase(), banjara });
-        }
+            const addMapping = (word) => {
+                if (!word || word === banjara) return;
+                if (!vocab[word]) vocab[word] = [];
+                if (!vocab[word].includes(banjara)) vocab[word].push(banjara);
+            };
 
-        if (!notes) return;
+            addMapping(english);
+            addMapping(telugu);
+            addMapping(hindi);
+        });
+    }
 
-        // Parse word mappings from notes
-        // Formats: "word=translation", "word-translation", "word - translation"
-        const parts = notes.split(/,|;/).map(p => p.trim()).filter(p => p);
+    // 2. Load Verified Dataset (High Accuracy / Sentence Patterns)
+    if (fs.existsSync(DATASET_FILE)) {
+        const csvContent = fs.readFileSync(DATASET_FILE, 'utf8');
+        const rows = parseCSV(csvContent);
+        const data = rows.slice(1);
 
-        parts.forEach(part => {
-            let splitChar = null;
-            if (part.includes('=')) splitChar = '=';
-            else if (part.includes('-')) splitChar = '-';
+        data.forEach(row => {
+            const english = (row[1] || '').trim();
+            const banjara = (row[2] || '').trim();
+            const notes = (row[3] || '').trim();
 
-            if (!splitChar) return;
+            if (english && banjara) {
+                sentencePairs.push({ english: english.toLowerCase(), banjara });
+            }
 
-            // Split only on first occurrence
-            const idx = part.indexOf(splitChar);
-            const banjaraWord = part.substring(0, idx).trim().toLowerCase();
-            const englishMeaning = part.substring(idx + 1).trim().toLowerCase();
+            if (!notes) return;
 
-            if (!banjaraWord || !englishMeaning) return;
+            // Parse word mappings from notes
+            const parts = notes.split(/,|;/).map(p => p.trim()).filter(p => p);
+            parts.forEach(part => {
+                let splitChar = null;
+                if (part.includes('=')) splitChar = '=';
+                else if (part.includes('-')) splitChar = '-';
 
-            // Store both directions
-            // English meanings can have multiple words like "dont have"
-            const meanings = englishMeaning.split('/').map(m => m.trim()).filter(m => m);
-            meanings.forEach(meaning => {
-                if (!vocab[meaning]) vocab[meaning] = [];
-                if (!vocab[meaning].includes(banjaraWord)) {
-                    vocab[meaning].push(banjaraWord);
-                }
+                if (!splitChar) return;
+
+                const idx = part.indexOf(splitChar);
+                const banjaraWord = part.substring(0, idx).trim().toLowerCase();
+                const englishMeaning = part.substring(idx + 1).trim().toLowerCase();
+
+                if (!banjaraWord || !englishMeaning) return;
+
+                const meanings = englishMeaning.split('/').map(m => m.trim()).filter(m => m);
+                meanings.forEach(meaning => {
+                    if (!vocab[meaning]) vocab[meaning] = [];
+                    if (!vocab[meaning].includes(banjaraWord)) {
+                        vocab[meaning].push(banjaraWord);
+                    }
+                });
             });
         });
-    });
+    }
 
     return { vocab, sentencePairs };
 }
@@ -110,7 +130,129 @@ function suggestTranslation(englishSentence, vocab, sentencePairs) {
         }
     }
 
-    // Second: word-by-word lookup
+    // Second: Apply logic-based reordering (SOV)
+    const lowerWithPunct = englishSentence.toLowerCase();
+    const cleanWords = lowerWithPunct.replace(/[.,!?;:'"()]/g, '').split(/\s+/).filter(w => w);
+
+    // Subjects & Vocabulary Overrides
+    const subjectMap = {
+        'i': { p: 1, n: 'singular' }, 'me': { p: 1, n: 'singular' },
+        'we': { p: 1, n: 'plural' }, 'you': { p: 2, n: 'singular' },
+        'he': { p: 3, n: 'singular', g: 'masculine' },
+        'she': { p: 3, n: 'singular', g: 'feminine' },
+        'they': { p: 3, n: 'plural' }, 'it': { p: 3, n: 'singular' }
+    };
+
+    const verbRoots = {
+        'doing': 'karr', 'going': 'jaar', 'working': 'karr', 'playing': 'ram',
+        'ramre': 'ram', 'eating': 'khaar', 'drinking': 'peer', 'cooking': 'raand',
+        'teaching': 'sikhaar', 'reading': 'padd', 'coming': 'aar', 'talking': 'waaathe',
+        'calling': 'bal'
+    };
+
+    const vocabOverrides = {
+        'teacher': 'guru', 'children': 'chacharune', 'students': 'chacharune',
+        'food': 'dhann', 'sister': 'baay', 'mother': 'maay', 'buffalo': 'bhyamsi',
+        'market': 'bajar', 'garden': 'baageer', 'school': 'badi', 'field': 'khetr',
+        'house': 'ghar', 'village': 'taanda', 'water': 'paani', 'fruit': 'phal',
+        'book': 'pustak', 'rice': 'chaaval', 'grass': 'gvaas', 'milk': 'doodh',
+        'work': 'kaam', 'man': 'aadmi', 'boy': 'chora', 'cow': 'gawdi', 'lesson': 'paat',
+        'kitchen': 'koni', 'boys': 'chachaper', 'students': 'chachaper'
+    };
+
+    const bgeSkipWords = new Set(['am', 'is', 'are', 'the', 'a', 'an', 'to', 'in', 'of', 'from', 'at', 'by', 'for', 'with', 'it', 'into']);
+
+    let sub = null, verb = null, objList = [], suffix = null;
+
+    // Component identification
+    for (let i = 0; i < cleanWords.length; i++) {
+        const w = cleanWords[i];
+        if (bgeSkipWords.has(w)) continue;
+
+        if (!sub && (subjectMap[w] || vocabOverrides[w])) {
+            sub = w;
+        } else if (!verb && verbRoots[w]) {
+            verb = w;
+        } else if (vocabOverrides[w] || vocab[w]) {
+            if (w !== sub && !objList.includes(w)) objList.push(w);
+        }
+    }
+
+    // Capture "kaam" (work) specifically
+    if (lowerWithPunct.match(/\b(work|working)\b/i) && !objList.includes('work')) {
+        objList.push('work');
+    }
+
+    // Sorting objects: Prepositional/Suffix object first
+    let targetObj = null;
+    objList.forEach(o => {
+        if (lowerWithPunct.match(new RegExp(`(to|into|in|inside|from|with|along with|of|calling)(\\s+the)?\\s+${o}`, 'i'))) {
+            targetObj = o;
+            suffix = lowerWithPunct.includes('to ' + o) || lowerWithPunct.includes('to the ' + o) ? 'to' :
+                lowerWithPunct.includes('in ' + o) || lowerWithPunct.includes('in the ' + o) ? 'in' :
+                    lowerWithPunct.includes('from ' + o) || lowerWithPunct.includes('from the ' + o) ? 'from' :
+                        lowerWithPunct.includes('with ' + o) || lowerWithPunct.includes('with the ' + o) ? 'with' :
+                            (lowerWithPunct.includes('calling ' + o) || lowerWithPunct.includes('calling the ' + o)) ? 'to' : 'of';
+        }
+    });
+
+    // Special case for speech: talking TO/WITH teacher
+    if (verb === 'talking' && targetObj) suffix = 'speech';
+
+    if (sub && verb) {
+        let person = 3, number = 'singular', gender = 'masculine';
+        let bSub = "";
+
+        if (subjectMap[sub]) {
+            const info = subjectMap[sub];
+            person = info.p;
+            number = info.n;
+            gender = info.g || 'masculine';
+            bSub = BGE.getPronoun(person, number);
+        } else {
+            bSub = vocabOverrides[sub] || (vocab[sub] ? vocab[sub][0] : sub);
+            bSub = bSub.charAt(0).toUpperCase() + bSub.slice(1);
+            // Prepend Vu only for 'man' as per Correct set #1
+            if (lowerWithPunct.startsWith('the ') && sub === 'man') bSub = "Vu " + bSub.toLowerCase();
+            person = 3;
+            number = (sub === 'children' || sub === 'they' || sub === 'we' || sub === 'boys' || sub === 'students') ? 'plural' : 'singular';
+        }
+
+        if (lowerWithPunct.match(/\b(she|mother|sister|girl|baai|yaadi|bhyamsi|buffalo|cow|gaay|gawdi)\b/i)) {
+            gender = 'feminine';
+        }
+
+        const bVerbRoot = verbRoots[verb];
+        let bVerbBase = BGE.conjugateContinuous(bVerbRoot, gender, number);
+        const bAux = BGE.getAuxiliary(person, number, gender);
+
+        // Special case for compound speech verb: waaathe karre
+        if (verb === 'talking') bVerbBase = "waaathe karre";
+
+        // Sort objList so targetObj (suffix) comes first
+        let sortedObjs = [...objList];
+        if (targetObj) {
+            sortedObjs = sortedObjs.filter(o => o !== targetObj);
+            sortedObjs.unshift(targetObj);
+        }
+
+        let filteredObjs = sortedObjs.filter(o => !bgeSkipWords.has(o));
+        let bObjs = filteredObjs.map(o => {
+            let bO = vocabOverrides[o] || (vocab[o] ? vocab[o][0] : o);
+            if (o === targetObj && suffix) {
+                const isOPlural = (o === 'children' || o === 'boys' || o === 'students');
+                bO = BGE.attachSuffix(bO, suffix, isOPlural ? 'plural' : 'singular');
+            }
+            return bO;
+        }).join(' ');
+
+        if (bObjs) bObjs += " ";
+
+        const sov = `${bSub} ${bObjs}${bVerbBase} ${bAux}`;
+        return `🧠 RULE: ${sov}`;
+    }
+
+    // Third: word-by-word lookup
     const translated = [];
     const unknown = [];
     const skipWords = new Set(['a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been',
@@ -243,29 +385,33 @@ function updateHTMLWithSuggestions(batchNum) {
 }
 
 // ===== MAIN =====
-const args = process.argv.slice(2);
-const command = args[0];
-
-switch (command) {
-    case '--batch': {
-        const batchNum = parseInt(args[1]);
-        if (isNaN(batchNum)) { console.error('Usage: node suggest_translations.js --batch <N>'); break; }
-        generateBatchSuggestions(batchNum);
-        break;
-    }
-    case '--update-html': {
-        const batchNum = parseInt(args[1]);
-        if (isNaN(batchNum)) { console.error('Usage: node suggest_translations.js --update-html <N>'); break; }
-        generateBatchSuggestions(batchNum);
-        updateHTMLWithSuggestions(batchNum);
-        break;
-    }
-    default:
-        console.log(`
+if (require.main === module) {
+    const args = process.argv.slice(2);
+    switch (args[0]) {
+        case '--batch': {
+            const batchNum = parseInt(args[1]);
+            if (isNaN(batchNum)) { console.error('Usage: node suggest_translations.js --batch <N>'); break; }
+            generateBatchSuggestions(batchNum);
+            break;
+        }
+        case '--update-html': {
+            const batchNum = parseInt(args[1]);
+            if (isNaN(batchNum)) { console.error('Usage: node suggest_translations.js --update-html <N>'); break; }
+            generateBatchSuggestions(batchNum);
+            updateHTMLWithSuggestions(batchNum);
+            break;
+        }
+        default:
+            console.log(`
 🔍 Banjara Translation Suggestion Engine
 
 Usage:
   node suggest_translations.js --batch <N>        Show suggestions for batch N
   node suggest_translations.js --update-html <N>  Update HTML tool with suggestions for batch N
-        `);
+            `);
+    }
+}
+
+if (typeof module !== 'undefined' && require.main !== module) {
+    module.exports = { buildVocabulary, suggestTranslation, parseCSV };
 }

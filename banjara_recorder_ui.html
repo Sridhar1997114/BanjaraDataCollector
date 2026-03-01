@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banjara Data Collector | Fine8 Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { mono: ['JetBrains Mono', 'monospace'], sans: ['Inter', 'sans-serif'] },
+                    colors: { emerald: { 500: '#10b981', 600: '#059669', 900: '#064e3b' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .stoic-glass {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .fine8-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 3s ease-in-out forwards;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .recording-pulse {
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center py-12 px-4 relative">
+
+    <!-- Ambient Background -->
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
+        <div class="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-emerald-900/20 blur-[150px] rounded-full"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-slate-900/40 blur-[150px] rounded-full">
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-4xl relative z-10 space-y-8">
+
+        <!-- Header -->
+        <header class="flex flex-col items-center space-y-4">
+            <div id="logo-container" class="w-24 h-24 text-slate-400 opacity-80 hover:opacity-100 transition-opacity">
+                <!-- SVG INJECTION POINT -->
+            </div>
+            <h1 class="text-3xl font-mono font-bold tracking-tighter text-white">BANJARA<span
+                    class="text-emerald-500">.AI</span></h1>
+            <p class="text-sm text-slate-500 uppercase tracking-widest">Data Collection Protocol v2.0</p>
+        </header>
+
+        <!-- Controls Bar -->
+        <div class="stoic-glass rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-xs uppercase text-slate-500 font-bold tracking-widest">Target Batch</span>
+                <select id="batchSelector"
+                    class="bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors cursor-pointer">
+                    <!-- JS Injected -->
+                </select>
+            </div>
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="flex-1 md:w-64 h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div id="progressBar"
+                        class="h-full bg-gradient-to-r from-emerald-900 to-emerald-500 w-0 transition-all duration-500">
+                    </div>
+                </div>
+                <span id="progressText" class="text-xs font-mono text-emerald-500">0/0</span>
+            </div>
+        </div>
+
+        <!-- Work Area -->
+        <div class="stoic-glass rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-hidden group">
+            <div
+                class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+            </div>
+
+            <!-- English Display -->
+            <div class="mb-8 space-y-2">
+                <label class="text-xs uppercase text-slate-500 font-bold tracking-widest">Source (English)</label>
+                <div id="englishSentence"
+                    class="text-2xl md:text-3xl font-medium text-white/90 leading-relaxed font-sans">
+                    Loading Data...
+                </div>
+            </div>
+
+            <!-- AI Suggestion (Hidden by default) -->
+            <div id="suggestionBox" class="hidden mb-6 p-4 rounded-xl bg-blue-900/20 border border-blue-500/30">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">AI Hint</span>
+                </div>
+                <p id="suggestionText" class="text-blue-100/80 text-lg"></p>
+                <div class="mt-2 text-[10px] text-blue-400/60 uppercase tracking-widest">✅ Exact Match &nbsp;•&nbsp; ❓
+                    Unknown Word</div>
+            </div>
+
+            <!-- Auto Notes (Hidden by default) -->
+            <div id="autoNotesBox" class="hidden mb-6 p-4 rounded-xl bg-emerald-900/20 border border-emerald-500/30">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Auto-Mapped Words</span>
+                </div>
+                <p id="autoNotesText" class="text-emerald-100/80 text-sm font-mono"></p>
+            </div>
+
+            <!-- Input Area -->
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs uppercase text-emerald-500/80 font-bold tracking-widest mb-2">Banjara
+                        Input (Roman Script)</label>
+                    <input type="text" id="banjaraInput"
+                        class="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-xl text-white focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono placeholder:text-slate-700"
+                        placeholder="Type translation..." autocomplete="off">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-slate-500 font-bold tracking-widest mb-2">Notes
+                        (Corrections Only)</label>
+                    <input type="text" id="notesInput"
+                        class="w-full bg-black/30 border border-white/5 rounded-lg p-3 text-sm text-slate-300 focus:outline-none focus:border-emerald-500/30 transition-all font-mono placeholder:text-slate-700"
+                        placeholder="e.g. land-jammi" autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Status Banner -->
+            <div id="statusBanner"
+                class="mt-8 p-3 rounded-lg bg-slate-900/50 text-center text-sm font-mono text-slate-400 border border-white/5">
+                Ready to record.
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button id="recordBtn"
+                    class="col-span-1 md:col-span-2 py-6 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-red-900/20 active:scale-[0.98] flex items-center justify-center gap-3 group border border-red-400/20">
+                    <div class="w-3 h-3 bg-white rounded-full group-hover:scale-125 transition-transform"></div>
+                    <span class="uppercase tracking-widest" id="recordBtnText">Start Recording</span>
+                </button>
+
+                <button id="saveBtn" disabled
+                    class="py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 disabled:hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-emerald-900/20 active:scale-[0.98] uppercase tracking-widest text-sm flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Save & Next
+                </button>
+
+                <div class="flex gap-2">
+                    <button id="skipBtn"
+                        class="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all uppercase tracking-widest text-sm text-xs">Skip</button>
+                    <button id="playbackBtn" disabled
+                        class="flex-1 py-4 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-emerald-400 font-bold rounded-xl transition-all uppercase tracking-widest text-sm text-xs">Play</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Export Section -->
+        <div class="flex justify-center pt-8">
+            <button id="exportBtn"
+                class="px-8 py-3 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-full border border-white/5 transition-all text-xs uppercase tracking-widest flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Export All Data (CSV + WAV)
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        // ===== LOGIC INJECTION POINT =====
+        const state = { sentences: [], currentIndex: 0, recordings: [], sessionStartTime: Date.now(), isRecording: false, currentAudioBlob: null, autoNotes: '' };
+
+        // DATA PLACEHOLDER
+        const batches = {
+            9: [
+                { english: "For 220 years, our community has preserved his memory.", suggestion: "" },
+                { english: "But many of us know only fragments of his story.", suggestion: "" },
+                { english: "We know he was divine.", suggestion: "" },
+                { english: "We know he reformed our community.", suggestion: "" },
+                { english: "We know he gave us dignity.", suggestion: "" },
+                { english: "But today, we present the complete, documented history.", suggestion: "" },
+                { english: "Based on historical records.", suggestion: "" },
+                { english: "Government documents.", suggestion: "" },
+                { english: "The traditional epic Sevabhaya.", suggestion: "" },
+                { english: "And oral histories passed down through generations.", suggestion: "" },
+            ],
+            10: [
+                { english: "This is our heritage.", suggestion: "" },
+                { english: "This is our pride.", suggestion: "" },
+                { english: "This is the story of Sant Sevalal Maharaj.", suggestion: "" },
+                { english: "Our Maharaj was born on 15 February 1739.", suggestion: "" },
+                { english: "This date is historically verified.", suggestion: "" },
+                { english: "But his exact birthplace remains a matter of scholarly debate.", suggestion: "" },
+                { english: "Karnataka claims Surgondankoppa in Shimoga district.", suggestion: "" },
+                { english: "Official government records support this location.", suggestion: "" },
+                { english: "Andhra Pradesh claims Sevagad in Anantapur district.", suggestion: "" },
+                { english: "Traditional Lambadi bards and oral histories support this location.", suggestion: "" },
+            ],
+            11: [
+                { english: "Both claims have historical validity.", suggestion: "" },
+                { english: "The discrepancy reflects our community's nomadic nature during that period.", suggestion: "" },
+                { english: "What matters most is not WHERE he was born.", suggestion: "" },
+                { english: "But WHAT he achieved for our people.", suggestion: "" },
+                { english: "15 February 1739 marks the birth of our greatest reformer.", suggestion: "" },
+                { english: "Sant Sevalal Maharaj came from a distinguished Rajput lineage.", suggestion: "" },
+                { english: "Father: Bheema Naik Ramawat Rathod.", suggestion: "" },
+                { english: "Mother: Dharamani Yaadi, also revered as Dharmani Mata.", suggestion: "" },
+                { english: "Grandfather: Ramji Naik Rathod.", suggestion: "" },
+                { english: "Birth name: Seva Bhaya, also known as Shiv Rathod.", suggestion: "" },
+            ],
+            12: [
+                { english: "The surname Rathod is significant.", suggestion: "" },
+                { english: "It connects our community to the Rajput warrior clans of Chittorgarh.", suggestion: "" },
+                { english: "This is our ancestral heritage.", suggestion: "" },
+                { english: "We are descendants of those who served Rana Pratap.", suggestion: "" },
+                { english: "As a child, he herded cattle near Sirsigad.", suggestion: "" },
+                { english: "A simple life of service and devotion.", suggestion: "" },
+                { english: "Until the miracle that would establish his divinity.", suggestion: "" },
+                { english: "This event is recorded in the traditional epic Sevabhaya.", suggestion: "" },
+                { english: "Recited by Lambadi bards for centuries.", suggestion: "" },
+                { english: "Young Sevalal was by a stream near Sirsigad.", suggestion: "" },
+            ],
+            13: [
+                { english: "In present-day Telangana.", suggestion: "" },
+                { english: "He felt the presence of Goddess Jagadamba.", suggestion: "" },
+                { english: "Also known as Goddess Mariamma Yaadi.", suggestion: "" },
+                { english: "He wished to offer her something.", suggestion: "" },
+                { english: "But he possessed nothing.", suggestion: "" },
+                { english: "No food.", suggestion: "" },
+                { english: "No flowers.", suggestion: "" },
+                { english: "No material offerings.", suggestion: "" },
+                { english: "So he took mud and wheat.", suggestion: "" },
+                { english: "With pure devotion, he prepared sheera from mud.", suggestion: "" },
+            ],
+            14: [
+                { english: "He prepared puri from wheat.", suggestion: "" },
+                { english: "And offered them to the goddess.", suggestion: "" },
+                { english: "Then, by divine grace, the mud transformed into real sheera.", suggestion: "" },
+                { english: "The wheat into real puri.", suggestion: "" },
+                { english: "This miracle established his divine nature.", suggestion: "" },
+                { english: "Those who witnessed this miracle understood immediately.", suggestion: "" },
+                { english: "This was not an ordinary child.", suggestion: "" },
+                { english: "This was a divine incarnation.", suggestion: "" },
+                { english: "Blessed by Goddess Jagadamba herself.", suggestion: "" },
+                { english: "From that day forward, he was recognized as spiritually awakened.", suggestion: "" },
+            ],
+            15: [
+                { english: "The community began to follow his guidance.", suggestion: "" },
+                { english: "He became Guru to our people.", suggestion: "" },
+                { english: "But to fully understand his significance, we must understand where we came from.", suggestion: "" },
+                { english: "Our roots.", suggestion: "" },
+                { english: "Our ancestral homeland.", suggestion: "" },
+                { english: "The Mewar region of Rajasthan.", suggestion: "" },
+                { english: "The land of Chittorgarh.", suggestion: "" },
+                { english: "This is our ancestral homeland.", suggestion: "" },
+                { english: "Mewar region.", suggestion: "" },
+                { english: "Chittorgarh fort.", suggestion: "" },
+            ],
+            16: [
+                { english: "The land where Rana Pratap fought for freedom.", suggestion: "[17%] ❓land katth(where) ❓rana ❓pratap ❓fought ❓freedom" },
+                { english: "We, the Banjaras—also called Lambadis and Gor—belonged to Rajput clans.", suggestion: "[44%] hum(we) ❓banjaras—also balayo(called) ❓lambadis anne(and) ❓gor—belonged een(to) ❓rajput ❓clans" },
+                { english: "Specifically, the Rathod clan of Chittorgarh.", suggestion: "[25%] ❓specifically ❓rathod ❓clan chittorgarh eer(of chittorgarh)" },
+                { english: "Our ancestors were not merely traders.", suggestion: "[25%] aapner(our) ❓ancestors ❓merely ❓traders" },
+                { english: "We were the logistics backbone of Rajput armies.", suggestion: "[33%] hum(we) ❓logistics ❓backbone eevur(of) ❓rajput ❓armies" },
+                { english: "We supplied provisions to Prithviraj Chauhan's forces.", suggestion: "[29%] hum(we) ❓supplied ❓provisions een(to) ❓prithviraj ❓chauhans ❓forces" },
+                { english: "We transported grain and weapons for Rana Pratap.", suggestion: "[29%] hum(we) ❓transported ❓grain anne(and) ❓weapons ❓rana ❓pratap" },
+                { english: "We crossed mountains and rivers with our bullock caravans.", suggestion: "[38%] hum(we) ❓crossed ❓mountains anne(and) ❓rivers aapner(our) ❓bullock ❓caravans" },
+                { english: "We were warriors and traders.", suggestion: "[50%] hum(we) ❓warriors anne(and) ❓traders" },
+                { english: "This is our heritage.", suggestion: "✅ EXACT: ee aapner ithaazer mai eek heerar naai" },
+            ],
+            17: [
+                { english: "This is our legacy.", suggestion: "[75%] ee(this) che(is) aapner(our) ❓legacy" },
+                { english: "In the late 16th century, the Mughal Empire defeated Rana Pratap.", suggestion: "[13%] deer(late) ❓16th ❓century ❓mughal ❓empire ❓defeated ❓rana ❓pratap" },
+                { english: "Our community became refugees.", suggestion: "[50%] aapner(our) samaj(community) ❓became ❓refugees" },
+                { english: "We followed Rana Pratap into the forests.", suggestion: "[17%] hum(we) ❓followed ❓rana ❓pratap ❓into ❓forests" },
+                { english: "Then began our great migration south.", suggestion: "[33%] tho(then) ❓began aapner(our) ❓great ❓migration ❓south" },
+                { english: "Through Malwa in Madhya Pradesh.", suggestion: "[0%] ❓through ❓malwa ❓madhya ❓pradesh" },
+                { english: "Through Central India.", suggestion: "[0%] ❓through ❓central ❓india" },
+                { english: "Through the Deccan region of Maharashtra.", suggestion: "[20%] ❓through ❓deccan ❓region eevur(of) ❓maharashtra" },
+                { english: "Finally settling in Karnataka, Andhra Pradesh, and Telangana.", suggestion: "[14%] ❓finally ❓settling ❓karnataka ❓andhra ❓pradesh anne(and) ❓telangana" },
+                { english: "Sant Sevalal's grandfather, Ramji Naik Rathod, led this migration.", suggestion: "[11%] ❓sant ❓sevalals ❓grandfather ❓ramji ❓naik ❓rathod ❓led ee(this) ❓migration" },
+            ],
+            18: [
+                { english: "He brought 360 families from Chittorgarh.", suggestion: "[33%] ee(he) ❓brought ❓360 ❓families eeti(from) ❓chittorgarh" },
+                { english: "Approximately 2,000 to 3,000 people.", suggestion: "[40%] ❓approximately ❓2000 een(to) ❓3000 mannkya(people)" },
+                { english: "An entire community searching for a new homeland.", suggestion: "[20%] ❓entire samaj(community) ❓searching ❓new ❓homeland" },
+                { english: "Our ancestors' journey of survival.", suggestion: "[40%] aapner(our) ❓ancestors ❓journey eevur(of) ❓survival" },
+                { english: "By 1739, when Sant Sevalal Maharaj was born, our community faced systematic oppression.", suggestion: "[27%] ❓1739 kanna(when) ❓sant ❓sevalal ❓maharaj ❓born aapner(our) samaj(community) ❓faced ❓systematic ❓oppression" },
+                { english: "The caste system denied us dignity.", suggestion: "[40%] ❓caste ❓system ❓denied apnen(us) izzat(dignity)" },
+                { english: "We were classified as outside the social hierarchy.", suggestion: "[33%] hum(we) ❓classified ❓as baar(outside) ❓social ❓hierarchy" },
+                { english: "Nomadic communities were labeled \"Criminal Tribes\" by the British.", suggestion: "[17%] ❓crimes ❓committed panan(but) ❓simply ❓being ❓nomadic" },
+                { english: "Not for crimes committed, but simply for being nomadic.", suggestion: "[33%] aapner(our) ❓forests ❓confiscated" },
+                { english: "Our forests were confiscated.", suggestion: "" },
+            ],
+            19: [
+                { english: "Our traditional grazing lands were restricted.", suggestion: "[40%] aapner(our) peenaro(traditional) ❓grazing ❓lands ❓restricted" },
+                { english: "Our water sources were controlled.", suggestion: "[50%] aapner(our) paani(water) ❓sources ❓controlled" },
+                { english: "Our women faced violence from settled communities.", suggestion: "[29%] aapner(our) ❓women ❓faced ❓violence eeti(from) ❓settled ❓communities" },
+                { english: "Our culture was dismissed as primitive.", suggestion: "[20%] aapner(our) ❓culture ❓dismissed ❓as ❓primitive" },
+                { english: "Into this darkness, Sant Sevalal Maharaj brought light.", suggestion: "[13%] ❓into ee(this) ❓darkness ❓sant ❓sevalal ❓maharaj ❓brought ❓light" },
+                { english: "Into this oppression, he brought dignity.", suggestion: "[50%] ❓into ee(this) ❓oppression ee(he) ❓brought izzat(dignity)" },
+                { english: "Into this despair, he brought hope.", suggestion: "[33%] ❓into ee(this) ❓despair ee(he) ❓brought ❓hope" },
+                { english: "Late 1700s.", suggestion: "[50%] deer(late) ❓1700s" },
+                { english: "Hyderabad city under Nizam rule.", suggestion: "[0%] ❓hyderabad ❓city ❓under ❓nizam ❓rule" },
+                { english: "A devastating cholera epidemic struck.", suggestion: "[0%] ❓devastating ❓cholera ❓epidemic ❓struck" },
+            ],
+            20: [
+                { english: "Hundreds dying daily.", suggestion: "[0%] ❓hundreds ❓dying ❓daily" },
+                { english: "The Nizam's royal physicians were helpless.", suggestion: "[0%] ❓nizams ❓royal ❓physicians ❓helpless" },
+                { english: "Traditional healers could not stop the deaths.", suggestion: "[20%] peenaro(traditional) ❓healers ❓could ❓stop ❓deaths" },
+                { english: "Fear paralyzed the city.", suggestion: "[0%] ❓fear ❓paralyzed ❓city" },
+                { english: "Then Sant Sevalal Maharaj arrived.", suggestion: "[20%] tho(then) ❓sant ❓sevalal ❓maharaj ❓arrived" },
+                { english: "With no formal medical degree.", suggestion: "[25%] math(no) ❓formal ❓medical ❓degree" },
+                { english: "No hospital.", suggestion: "[50%] math(no) ❓hospital" },
+                { english: "No modern equipment.", suggestion: "[33%] math(no) ❓modern ❓equipment" },
+                { english: "Only his profound knowledge of Ayurveda and Naturopathy.", suggestion: "[38%] ❓only vor(his) ❓profound ❓knowledge eevur(of) ❓ayurveda anne(and) ❓naturopathy" },
+                { english: "He began treating cholera patients systematically.", suggestion: "[17%] ee(he) ❓began ❓treating ❓cholera ❓patients ❓systematically" },
+            ],
+            21: [
+                { english: "Using herbs from the forest.", suggestion: "[25%] ❓using ❓herbs eeti(from) ❓forest" },
+                { english: "Using ancient healing knowledge.", suggestion: "[25%] ❓using peenaro(ancient) ❓healing ❓knowledge" },
+                { english: "And miraculously, people began recovering.", suggestion: "[40%] anne(and) ❓miraculously mannkya(people) ❓began ❓recovering" },
+                { english: "Day after day, our Maharaj worked tirelessly.", suggestion: "[14%] ❓day ❓after ❓day aapner(our) ❓maharaj ❓worked ❓tirelessly" },
+                { english: "Treating the sick without discrimination.", suggestion: "[25%] ❓treating bimar(sick) ❓without ❓discrimination" },
+                { english: "Hindu, Muslim, rich, poor—all received his care.", suggestion: "[14%] ❓hindu ❓muslim ❓rich ❓poor—all ❓received vor(his) ❓care" },
+                { english: "By the time the epidemic ended, he had saved thousands of lives.", suggestion: "[33%] time(time) ❓epidemic ❓ended ee(he) ❓had ❓saved ❓thousands eevur(of) ❓lives" },
+                { english: "This is historically documented.", suggestion: "[50%] ee(this) che(is) ❓historically ❓documented" },
+                { english: "The Nizam of Hyderabad heard of this extraordinary achievement.", suggestion: "[50%] ❓nizam eevur(of) hyderabad(hyderabad) ❓heard eevur(of) ee(this) ❓extraordinary ❓achievement" },
+                { english: "He summoned Sant Sevalal to his royal court.", suggestion: "[38%] ee(he) ❓summoned ❓sant ❓sevalal een(to) vor(his) ❓royal ❓court" },
+            ],
+            22: [
+                { english: "What happened next elevated our entire community.", suggestion: "[29%] ❓what ❓happened ❓next ❓elevated aapner(our) ❓entire samaj(community)" },
+                { english: "The Nizam, impressed by his healing and wisdom, granted him a royal favor.", suggestion: "[15%] ❓nizam ❓impressed ❓by vor(his) ❓healing anne(and) ❓wisdom ❓granted ee(him) ❓royal ❓favor" },
+                { english: "Permission for our community's cattle to graze in a protected area.", suggestion: "[23%] ❓permission ❓for aapner(our) ❓communitys ❓cattle ❓graze ❓in ❓protected ❓area" },
+                { english: "That area exists today.", suggestion: "[25%] ❓that ❓area ❓exists aaj(today)" },
+                { english: "Banjara Hills, Hyderabad.", suggestion: "[33%] ❓banjara ❓hills hyderabad(hyderabad)" },
+                { english: "Brothers and sisters, when you see Banjara Hills today, remember this.", suggestion: "[17%] bhaai(brothers) anne(and) ❓sisters kanna(when) tam(you) ❓see ❓banjara ❓hills aaj(today) ❓remember ee(this)" },
+                { english: "That prestigious area bears OUR community's name.", suggestion: "[25%] ❓that ❓prestigious ❓area ❓bears aapner(our) ❓communitys naam(name)" },
+                { english: "Because of Sant Sevalal Maharaj's achievement.", suggestion: "[17%] ❓because eevur(of) ❓sant ❓sevalal ❓maharajs ❓achievement" },
+                { english: "The Nizam granted grazing rights to honor our Maharaj.", suggestion: "[22%] ❓nizam ❓granted ❓grazing ❓rights ❓honor aapner(our) ❓maharaj" },
+                { english: "He even commissioned his royal court artist to paint Sant Sevalal's portrait.", suggestion: "[15%] ee(he) ❓even ❓commissioned vor(his) ❓royal ❓court ❓artist ❓paint ❓sant ❓sevalals ❓portrait" },
+            ],
+            23: [
+                { english: "Historical records indicate that portrait was transported to Bangalore.", banjara: "", suggestion: "" },
+                { english: "Think about the significance.", banjara: "", suggestion: "" },
+                { english: "A nomadic community, discriminated against everywhere.", banjara: "har ek jaaag looghur mai dabaameli jakon samaj rehtoi bhi", suggestion: "[User Translation] har ek jaaag looghur mai dabaameli jakon samaj rehtoi bhi" },
+                { english: "Our spiritual leader, receiving royal recognition.", banjara: "apner guru ne raaj eer kanne pahechaan mali.", suggestion: "[User Translation] apner guru ne raaj eer kanne pahechaan mali." },
+                { english: "From one of India's most powerful rulers.", banjara: "vu bhi bharath desh ee maari eer eek mahaan raaj eer kanne.", suggestion: "[User Translation] vu bhi bharath desh ee maari eer eek mahaan raaj eer kanne." },
+                { english: "This was not just personal honor.", banjara: "Vu ekleer admire pahechaane eer vaath koni", suggestion: "[User Translation] Vu ekleer admire pahechaane eer vaath koni" },
+                { english: "This was recognition of our entire community's dignity.", banjara: "vu puuro Gorvaat eevur pahechaan vetthi", suggestion: "[User Translation] vu puuro Gorvaat eevur pahechaan vetthi" },
+                { english: "This is when the title \"Maharaj\" became universal among our people.", banjara: "vottetthieez \"maharaj\" kajako naam see makya vur ma vaath phelgee", suggestion: "[User Translation] vottetthieez \"maharaj\" kajako naam see makya vur ma vaath phelgee" },
+                { english: "You call him Maharaj.", banjara: "tam see von Maharaj keen kocho", suggestion: "[User Translation] tam see von Maharaj keen kocho" },
+                { english: "Your parents call him Maharaj.", banjara: "tamar yaadi baap bhi von Maharaj eez keemelech", suggestion: "[User Translation] tamar yaadi baap bhi von Maharaj eez keemelech" },
+            ],
+            24: [
+                { english: "Your grandparents called him Maharaj.", banjara: "tamar dada dadhi bhi von Maharaj eez keemelech", suggestion: "[User Translation] tamar dada dadhi bhi von Maharaj eez keemelech" },
+                { english: "But do you know precisely why?", banjara: "panan kasen kajakon maalam gee?", suggestion: "[User Translation] panan kasen kajakon maalam gee?" },
+                { english: "Maharaj means \"Great King\" in Sanskrit.", banjara: "Maharaj katho sanskrit eer ma \"mahaan Raaj\" kethan nin", suggestion: "[User Translation] Maharaj katho sanskrit eer ma \"mahaan Raaj\" kethan nin" },
+                { english: "Yet he never wore a crown or ruled a kingdom.", banjara: "Vu kannai matheer par soner kireet ghalo koni, kunishi raaj een paalo koni", suggestion: "[User Translation] Vu kannai matheer par soner kireet ghalo koni, kunishi raaj een paalo koni" },
+                { english: "There are five documented reasons why our community bestowed this highest title upon him.", banjara: "panan avda motto naam hannu kashen balavach keen abb me tameen paanch vaathe samlavunchu", suggestion: "[User Translation] panan avda motto naam hannu kashen balavach keen abb me tameen paanch vaathe samlavunchu" },
+                { english: "Reason number one: Extraordinary Knowledge and Wisdom.", banjara: "pahela vaat : setti jaada mahatv gyaan vettho", suggestion: "[User Translation] pahela vaat : setti jaada mahatv gyaan vettho" },
+                { english: "He mastered Ayurveda and Naturopathy to a degree that astounded royal physicians.", banjara: "ajji - Von Ayurvedha, naturopathy eer nai jadi bootivur puuro gyan vettho, katra katho jannare moot rajeevur maair chikitsa kareval bhi parshan vejethe.", suggestion: "[User Translation] ajji - Von Ayurvedha, naturopathy eer nai jadi bootivur puuro gyan vettho, katra katho jannare moot rajeevur maair chikitsa kareval bhi parshan vejethe." },
+                { english: "He created a comprehensive ethical framework—the 22 Seva Bollies.", banjara: "ajji - Vu apneer vasu zindagi niyyat eeti banchen vees an dee boli samlyo, vonduneex vessan di Seva Bollie ken kach ", suggestion: "[User Translation] ajji - Vu apneer vasu zindagi niyyat eeti banchen vees an dee boli samlyo, vonduneex vessan di Seva Bollie ken kach " },
+                { english: "He unified fragmented Banjara clans across vast geographical regions.", banjara: "tukdavuma katti kattiko che jakon apner see jaath een eek jaag eek vaat eepar laayo", suggestion: "[User Translation] tukdavuma katti kattiko che jakon apner see jaath een eek jaag eek vaat eepar laayo" },
+                { english: "He provided guidance on health, family matters, justice, and spirituality.", banjara: "jeev aacho ku rakad nu, katmaleer ma ku bhalen reenu, neeti nayat eethi ku banchnu and bhakthi ku karnu, ee sheee vaathe sikameloch.", suggestion: "[User Translation] jeev aacho ku rakad nu, katmaleer ma ku bhalen reenu, neeti nayat eethi ku banchnu and bhakthi ku karnu, ee sheee vaathe sikameloch." },
+            ],
+            25: [
+                { english: "His wisdom elevated our entire community.", banjara: "Voor vaatevuteez apeer puuro Gor maati and Gor jaath eek lekepar aayiche.", suggestion: "[User Translation] Voor vaatevuteez apeer puuro Gor maati and Gor jaath eek lekepar aayiche." },
+                { english: "Reason number two: Social Revolution.", banjara: "Dusro vaath : samaaj eer kranthi", suggestion: "[User Translation] Dusro vaath : samaaj eer kranthi" },
+                { english: "Sant Sevalal Maharaj accomplished what seemed impossible.", banjara: "ketti vangaine kajaon eek kaameen Sant Sevalal Maharaj karan dekaalo", suggestion: "[User Translation] ketti vangaine kajaon eek kaameen Sant Sevalal Maharaj karan dekaalo" },
+                { english: "He challenged the caste hierarchy that oppressed us.", banjara: "moot nankya kethanin apnen daaben dite jannunthi apan keeti kam koni keen kadan dikalo ", suggestion: "[User Translation] moot nankya kethanin apnen daaben dite jannunthi apan keeti kam koni keen kadan dikalo " },
+                { english: "He negotiated with the British colonial administration for our rights.", banjara: "British eevur kann bhi apneervur naam kamayoch", suggestion: "[User Translation] British eevur kann bhi apneervur naam kamayoch" },
+                { english: "He secured agreements with the Nizam of Hyderabad.", banjara: "Hyderabad eer nizam eer kan aapnevur naam kamayoch", suggestion: "[User Translation] Hyderabad eer nizam eer kan aapnevur naam kamayoch" },
+                { english: "He dealt with Mysore rulers on equal terms.", banjara: "mysore eer raaj eevuthi bhi hanuuj vaath badayo.", suggestion: "[User Translation] mysore eer raaj eevuthi bhi hanuuj vaath badayo." },
+                { english: "He created the thanda system—transforming us from nomads to settled communities.", banjara: "Jaag jaag pahrukareer aapneer samaj een tandho kajon ku beesadnu ko seekayo", suggestion: "[User Translation] Jaag jaag pahrukareer aapneer samaj een tandho kajon ku beesadnu ko seekayo" },
+                { english: "Before him, we wandered without permanent homes.", banjara: "hannu apnen sikavjeeter aaj apneune eek ghar ken vetti koni.", suggestion: "[User Translation] hannu apnen sikavjeeter aaj apneune eek ghar ken vetti koni." },
+                { english: "After him, we had thandas, villages, identity, and legal recognition.", banjara: "Vu aayo jeer paccheeez, ee thanda keen gaame ee ken eek naam an khanoon eer pahechaan mali", suggestion: "[User Translation] Vu aayo jeer paccheeez, ee thanda keen gaame ee ken eek naam an khanoon eer pahechaan mali" },
+            ],
+            26: [
+                { english: "Reason number three: Divine Powers.", banjara: "teesroo vaath: Voo Divya shakthi", suggestion: "[User Translation] teesroo vaath: Voo Divya shakthi" },
+                { english: "The traditional epic Sevabhaya documents miraculous healings.", banjara: "Sevabhaya re peenare kaagaduma jatriko chamatkareeti theek kidho jako kahani che.", suggestion: "[User Translation] Sevabhaya re peenare kaagaduma jatriko chamatkareeti theek kidho jako kahani che." },
+                { english: "Prophecies that manifested.", banjara: "mundeeti aai jaon vaathe , keemelojuuz vemeleeche.", suggestion: "[User Translation] mundeeti aai jaon vaathe , keemelojuuz vemeleeche." },
+                { english: "Divine interventions witnessed by thousands.", banjara: "vvor deevethi che jakon anubhuthi ne hazaaro admi dheek meleche.", suggestion: "[User Translation] vvor deevethi che jakon anubhuthi ne hazaaro admi dheek meleche." },
+                { english: "Our community believes he was an incarnation of Lord Shiva, blessed by Goddess Mariamma Yaadi.", banjara: "", suggestion: "" },
+                { english: "Reason number four: Spiritual Tradition.", banjara: "", suggestion: "" },
+                { english: "India has a sacred tradition of honoring enlightened teachers as Maharaj.", banjara: "", suggestion: "" },
+                { english: "Vallabhacharya—called Mahaprabhu.", banjara: "", suggestion: "" },
+                { english: "Chaitanya Mahaprabhu—revered across Bengal.", banjara: "", suggestion: "" },
+                { english: "Sant Tukaram—honored by royalty.", banjara: "", suggestion: "" },
+            ]
+        };
+        // ===== CORE LOGIC =====
+
+        function populateBatchSelector() {
+            const select = document.getElementById('batchSelector');
+            select.innerHTML = '';
+            Object.keys(batches).sort((a, b) => a - b).forEach(num => {
+                const opt = document.createElement('option');
+                opt.value = num;
+                opt.textContent = `Batch ${num} (${batches[num].length} sentences)`;
+                select.appendChild(opt);
+            });
+            select.value = currentBatch;
+            select.addEventListener('change', (e) => loadBatch(parseInt(e.target.value)));
+        }
+
+        function loadBatch(batchNum) {
+            currentBatch = batchNum;
+            state.sentences = batches[batchNum] || [];
+            state.currentIndex = 0;
+            state.recordings = [];
+            state.sessionStartTime = Date.now();
+            updateStats();
+            loadSentence();
+        }
+
+        function initialize() {
+            try {
+                populateBatchSelector();
+                loadBatch(currentBatch);
+                startSessionTimer();
+                updateStats();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                alert('Error initializing: ' + error.message);
+            }
+        }
+
+        function loadSentence() {
+            if (state.currentIndex >= state.sentences.length) {
+                showCompletionScreen();
+                return;
+            }
+
+            const item = state.sentences[state.currentIndex];
+            const englishText = typeof item === 'string' ? item : item.english;
+            const suggestionText = typeof item === 'string' ? '' : (item.suggestion || '');
+            const prefilledBanjara = typeof item === 'string' ? '' : (item.banjara || '');
+
+            // Animate Transition
+            const display = document.getElementById('englishSentence');
+            display.style.opacity = '0';
+            setTimeout(() => {
+                display.textContent = englishText;
+                display.style.opacity = '1';
+                display.classList.add('transition-opacity', 'duration-500');
+            }, 200);
+
+            // AI Suggestion
+            const suggestionBox = document.getElementById('suggestionBox');
+            if (suggestionText) {
+                suggestionBox.classList.remove('hidden');
+                document.getElementById('suggestionText').innerHTML = formatSuggestion(suggestionText);
+            } else {
+                suggestionBox.classList.add('hidden');
+            }
+
+            // Auto Notes
+            const autoNotesBox = document.getElementById('autoNotesBox');
+            const autoNotes = generateAutoNotes(suggestionText);
+            if (autoNotes) {
+                autoNotesBox.classList.remove('hidden');
+                document.getElementById('autoNotesText').textContent = autoNotes;
+                state.autoNotes = autoNotes;
+            } else {
+                autoNotesBox.classList.add('hidden');
+                state.autoNotes = '';
+            }
+
+            // Inputs
+            const banjaraInput = document.getElementById('banjaraInput');
+            banjaraInput.value = prefilledBanjara;
+            document.getElementById('notesInput').value = '';
+            banjaraInput.focus();
+
+            // Reset Audio
+            state.currentAudioBlob = null;
+            state.audioChunks = [];
+
+            updateStatus('Ready to record', 'idle');
+            updateUI();
+            updateProgress();
+        }
+
+        function formatSuggestion(text) {
+            if (!text) return '';
+            return text
+                .replace(/❓(\w+)/g, '<span class="text-red-400 font-bold">❓$1</span>')
+                .replace(/✅/g, '<span class="text-emerald-400 font-bold">✅</span>')
+                .replace(/\[(\d+)%\]/g, '<span class="bg-blue-900/50 text-blue-300 px-1 rounded text-xs font-mono">$1%</span>');
+        }
+
+        function generateAutoNotes(suggestion) {
+            if (!suggestion) return '';
+            const matches = suggestion.match(/([\w]+)\(([^)]+)\)/g);
+            if (!matches) return '';
+            return matches.map(m => {
+                const parts = m.match(/([\w]+)\(([^)]+)\)/);
+                if (parts) return `${parts[1]}-${parts[2]}`;
+                return m;
+            }).join(', ');
+        }
+
+        function showCompletionScreen() {
+            document.getElementById('englishSentence').innerHTML = '<span class="text-emerald-400">🎉 Batch Complete!</span><br><span class="text-lg text-slate-400">Please export your data.</span>';
+            document.getElementById('banjaraInput').disabled = true;
+            document.getElementById('notesInput').disabled = true;
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('saveBtn').disabled = true;
+            updateStatus('Session Complete', 'saved');
+        }
+
+        // ===== AUDIO RECORDING =====
+        let audioContext, mediaStream, scriptProcessor, inputSource, audioBuffers = [];
+
+        async function toggleRecording() {
+            if (state.isRecording) {
+                stopRecording();
+            } else {
+                await startRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+                if (audioContext.state === 'suspended') await audioContext.resume();
+
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                inputSource = audioContext.createMediaStreamSource(mediaStream);
+                scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                audioBuffers = [];
+                scriptProcessor.onaudioprocess = (e) => {
+                    if (!state.isRecording) return;
+                    audioBuffers.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+                };
+
+                inputSource.connect(scriptProcessor);
+                scriptProcessor.connect(audioContext.destination);
+
+                state.isRecording = true;
+
+                // UI Update
+                const btn = document.getElementById('recordBtn');
+                btn.classList.add('bg-slate-800', 'recording-pulse');
+                btn.classList.remove('bg-red-600', 'hover:bg-red-500');
+                document.getElementById('recordBtnText').textContent = 'Stop Recording';
+
+                updateStatus('Recording...', 'recording');
+
+            } catch (error) {
+                console.error(error);
+                alert("Microphone Error: " + error.message);
+            }
+        }
+
+        function stopRecording() {
+            state.isRecording = false;
+            if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+            if (inputSource) inputSource.disconnect();
+            if (scriptProcessor) scriptProcessor.disconnect();
+
+            // Export WAV
+            state.currentAudioBlob = exportWAV(audioBuffers, audioContext.sampleRate);
+
+            // UI Update
+            const btn = document.getElementById('recordBtn');
+            btn.classList.remove('bg-slate-800', 'recording-pulse');
+            btn.classList.add('bg-red-600', 'hover:bg-red-500');
+            document.getElementById('recordBtnText').textContent = 'Re-Record';
+
+            updateStatus('Audio Captured', 'saved');
+            updateUI();
+        }
+
+        function exportWAV(buffers, sampleRate) {
+            const bufferLength = buffers.reduce((acc, buf) => acc + buf.length, 0);
+            const pcmData = new Float32Array(bufferLength);
+            let offset = 0;
+            for (const buf of buffers) {
+                pcmData.set(buf, offset);
+                offset += buf.length;
+            }
+            const wavBuffer = encodeWAV(pcmData, sampleRate);
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+        }
+
+        function encodeWAV(samples, sampleRate) {
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + samples.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, samples.length * 2, true);
+            floatTo16BitPCM(view, 44, samples);
+            return view;
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+        }
+
+        function floatTo16BitPCM(output, offset, input) {
+            for (let i = 0; i < input.length; i++, offset += 2) {
+                let s = Math.max(-1, Math.min(1, input[i]));
+                s = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                output.setInt16(offset, s, true);
+            }
+        }
+
+        function playRecording() {
+            if (!state.currentAudioBlob) return;
+            new Audio(URL.createObjectURL(state.currentAudioBlob)).play();
+        }
+
+        // ===== SAVING & EXPORT =====
+        function saveCurrentEntry() {
+            const banjaraText = document.getElementById('banjaraInput').value.trim();
+            const notesText = document.getElementById('notesInput').value.trim();
+            if (!banjaraText || !state.currentAudioBlob) return alert('Translation and Audio required!');
+
+            const item = state.sentences[state.currentIndex];
+            const autoNotes = state.autoNotes || '';
+            const mergedNotes = [autoNotes, notesText].filter(n => n).join(', ');
+
+            state.recordings.push({
+                id: state.recordings.length + 1,
+                english: item.english,
+                banjara: banjaraText,
+                notes: mergedNotes,
+                audio: state.currentAudioBlob,
+                timestamp: new Date().toISOString()
+            });
+
+            state.currentIndex++;
+            loadSentence();
+            updateStats();
+        }
+
+        function skipSentence() {
+            if (confirm('Skip this sentence?')) {
+                state.currentIndex++;
+                loadSentence();
+            }
+        }
+
+        async function exportData() {
+            if (state.recordings.length === 0) return alert('No data to export.');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+
+            // CSV
+            let csv = 'id,english,banjara,notes,audio_file,timestamp\n';
+            state.recordings.forEach(e => {
+                const filename = `${sanitizeFilename(e.banjara)}.wav`;
+                csv += `${e.id},"${escapeCsv(e.english)}","${escapeCsv(e.banjara)}","${escapeCsv(e.notes)}",${filename},${e.timestamp}\n`;
+            });
+            downloadFile(csv, `banjara_translations_${timestamp}.csv`, 'text/csv');
+
+            // Metadata CSV
+            let metadata = '';
+            state.recordings.forEach((e, i) => {
+                metadata += `banjara_${String(e.id).padStart(5, '0')}.wav|${e.banjara}\n`;
+            });
+            downloadFile(metadata, `metadata_${timestamp}.csv`, 'text/plain');
+
+            // Audio Files
+            for (const e of state.recordings) {
+                const filename = `${sanitizeFilename(e.banjara)}.wav`;
+                downloadBlob(e.audio, filename);
+                await new Promise(r => setTimeout(r, 200));
+            }
+        }
+
+        function sanitizeFilename(text) { return text.replace(/[^a-z0-9]/gi, '_').toLowerCase(); }
+        function escapeCsv(text) { return text.replace(/"/g, '""'); }
+
+        function downloadFile(content, filename, mime) {
+            downloadBlob(new Blob([content], { type: mime }), filename);
+        }
+        function downloadBlob(blob, filename) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // ===== HELPERS =====
+        function updateUI() {
+            const hasText = document.getElementById('banjaraInput').value.trim().length > 0;
+            const hasAudio = !!state.currentAudioBlob;
+            document.getElementById('saveBtn').disabled = !(hasText && hasAudio);
+            document.getElementById('playbackBtn').disabled = !hasAudio;
+        }
+
+        function updateProgress() {
+            const total = state.sentences.length;
+            const completed = state.currentIndex;
+            const percent = total ? (completed / total) * 100 : 0;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('progressText').textContent = `${completed}/${total}`;
+        }
+
+        function updateStats() {
+            // No-op for now unless stats UI added
+        }
+
+        function updateStatus(msg, type) {
+            const banner = document.getElementById('statusBanner');
+            banner.textContent = msg;
+            if (type === 'recording') banner.classList.add('text-red-400', 'animate-pulse');
+            else banner.classList.remove('text-red-400', 'animate-pulse');
+        }
+
+        function startSessionTimer() {
+            // simplified
+        }
+
+        // ===== EVENTS =====
+        document.getElementById('recordBtn').addEventListener('click', toggleRecording);
+        document.getElementById('saveBtn').addEventListener('click', saveCurrentEntry);
+        document.getElementById('skipBtn').addEventListener('click', skipSentence);
+        document.getElementById('playbackBtn').addEventListener('click', playRecording);
+        document.getElementById('exportBtn').addEventListener('click', exportData);
+        document.getElementById('banjaraInput').addEventListener('input', updateUI);
+
+        // Init
+        window.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+
+</html>
