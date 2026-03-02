@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +16,6 @@
             --glass-blur: 20px;
         }
 
-
         body {
             background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
             color: #fff;
@@ -29,7 +27,6 @@
             overflow: hidden;
             margin: 0;
         }
-
 
         .glass-card {
             background: var(--glass-bg);
@@ -45,7 +42,6 @@
             z-index: 10;
         }
 
-
         .ambient-glow {
             position: absolute;
             width: 400px;
@@ -57,14 +53,460 @@
             z-index: 1;
         }
 
-
         .glow-1 {
             top: -100px;
             left: -100px;
         }
 
-
         .glow-2 {
             bottom: -100px;
             right: -100px;
-        } 
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .word-display {
+            margin-bottom: 3rem;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        .banjara-text {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .english-text {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #000;
+            border: none;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+        }
+
+        .recording-indicator {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #ff4444;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .recording-indicator.active {
+            opacity: 1;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .recording-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff4444;
+            border-radius: 50%;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 0.5rem;
+        }
+
+        .fade-out {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        .fade-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <main class="glass-card">
+        <div id="recordingIndicator" class="recording-indicator">
+            <div class="recording-dot"></div>
+            REC
+        </div>
+
+        <div class="stats">
+            <span id="progressPercent">0% COMPLETE</span>
+            <span id="wordCount">0/0 WORDS</span>
+        </div>
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+
+        <div id="wordDisplay" class="word-display">
+            <div id="banjaraWord" class="banjara-text">Loading...</div>
+            <div id="englishMeaning" class="english-text">Please wait</div>
+        </div>
+
+        <div class="space-y-4">
+            <button id="recordBtn" class="btn btn-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="22"></line>
+                </svg>
+                <span id="recordText">Start Recording</span>
+            </button>
+
+            <button id="playbackBtn" class="btn" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                Listen Back
+            </button>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button id="skipBtn" class="btn">Skip Word</button>
+                <button id="saveBtn" class="btn" disabled>Save & Next</button>
+            </div>
+        </div>
+
+        <div class="mt-8 text-[10px] text-zinc-600 uppercase tracking-widest font-mono">
+            Banjara AI • Data Collection Tool v2.0
+        </div>
+
+        <!-- Settings Cog -->
+        <button id="settingsBtn" class="absolute top-8 left-8 text-zinc-500 hover:text-white transition-colors">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                    d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
+                </path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </button>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-card max-w-md p-8 text-left">
+            <h2 class="text-xl font-bold mb-6">GitHub Configuration</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] text-zinc-500 uppercase tracking-widest mb-2 font-mono">Personal
+                        Access Token</label>
+                    <input type="password" id="ghToken"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-white/30 transition-all"
+                        placeholder="ghp_xxxxxxxxxxxx">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-zinc-500 uppercase tracking-widest mb-2 font-mono">Repository
+                        (owner/repo)</label>
+                    <input type="text" id="ghRepo"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-white/30 transition-all"
+                        placeholder="Sridhar1997114/BanjaraDataCollector">
+                </div>
+                <div class="flex gap-4 mt-8">
+                    <button id="closeSettings" class="btn flex-1 py-3 mt-0">Close</button>
+                    <button id="saveSettings" class="btn btn-primary flex-1 py-3 mt-0">Save Config</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data source -->
+    <script src="banjara_unique_words_with_english.js"></script>
+
+    <script>
+        let currentIndex = parseInt(localStorage.getItem('banjara_index')) || 0;
+        let mediaRecorder;
+        let audioBlobs = [];
+        let currenAudioBlob = null;
+
+        const banjaraEl = document.getElementById('banjaraWord');
+        const englishEl = document.getElementById('englishMeaning');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercent = document.getElementById('progressPercent');
+        const wordCount = document.getElementById('wordCount');
+        const recordBtn = document.getElementById('recordBtn');
+        const recordText = document.getElementById('recordText');
+        const playbackBtn = document.getElementById('playbackBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const wordDisplay = document.getElementById('wordDisplay');
+
+        function updateUI() {
+            if (currentIndex >= BANJARA_WORDS.length) {
+                banjaraEl.textContent = "Done!";
+                englishEl.textContent = "All words recorded.";
+                recordBtn.disabled = true;
+                skipBtn.disabled = true;
+                return;
+            }
+
+            const current = BANJARA_WORDS[currentIndex];
+            wordDisplay.classList.add('fade-out');
+
+            setTimeout(() => {
+                banjaraEl.textContent = current.banjara;
+                englishEl.textContent = current.english;
+                wordDisplay.classList.remove('fade-out');
+                wordDisplay.classList.add('fade-in');
+            }, 300);
+
+            const progress = (currentIndex / BANJARA_WORDS.length) * 100;
+            progressFill.style.width = `${progress}%`;
+            progressPercent.textContent = `${Math.round(progress)}% COMPLETE`;
+            wordCount.textContent = `${currentIndex}/${BANJARA_WORDS.length} WORDS`;
+
+            playbackBtn.disabled = true;
+            saveBtn.disabled = true;
+            currenAudioBlob = null;
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioBlobs = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioBlobs.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    currenAudioBlob = new Blob(audioBlobs, { type: 'audio/wav' });
+                    playbackBtn.disabled = false;
+                    saveBtn.disabled = false;
+                };
+
+                mediaRecorder.start();
+                recordText.textContent = "Stop Recording";
+                recordBtn.classList.add('bg-red-900/20', 'text-red-500');
+                recordingIndicator.classList.add('active');
+            } catch (err) {
+                console.error("Error accessing microphone:", err);
+                alert("Microphone access denied.");
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+            recordText.textContent = "Record Again";
+            recordBtn.classList.remove('bg-red-900/20', 'text-red-500');
+            recordingIndicator.classList.remove('active');
+        }
+
+        recordBtn.onclick = () => {
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        };
+
+        playbackBtn.onclick = () => {
+            if (currenAudioBlob) {
+                const url = URL.createObjectURL(currenAudioBlob);
+                const audio = new Audio(url);
+                audio.play();
+            }
+        };
+
+        async function saveToGitHub(blob, filename) {
+            const token = localStorage.getItem('gh_token');
+            const repo = localStorage.getItem('gh_repo');
+
+            if (!token || !repo) {
+                console.log("No GitHub config found, downloading locally...");
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+                return true;
+            }
+
+            try {
+                const reader = new FileReader();
+                const base64Promise = new Promise(resolve => {
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                });
+                reader.readAsDataURL(blob);
+                const content = await base64Promise;
+
+                const path = `audio/${filename}`;
+                const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `Record Banjara word: ${filename}`,
+                        content: content,
+                        branch: 'main'
+                    })
+                });
+
+                if (response.ok) {
+                    return true;
+                } else {
+                    const err = await response.json();
+                    throw new Error(err.message);
+                }
+            } catch (err) {
+                console.error("GitHub Upload Error:", err);
+                alert("GitHub Upload Failed: " + err.message);
+                return false;
+            }
+        }
+
+        saveBtn.onclick = async () => {
+            if (!currenAudioBlob) return;
+
+            saveBtn.disabled = true;
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = "Saving...";
+
+            const filename = `${BANJARA_WORDS[currentIndex].english.replace(/[^\w\s]/g, '').replace(/\s+/g, '_')}.wav`;
+
+            const success = await saveToGitHub(currenAudioBlob, filename);
+
+            if (success) {
+                nextWord();
+                saveBtn.textContent = originalText;
+            } else {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
+        };
+
+        // Settings Logic
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettings = document.getElementById('closeSettings');
+        const saveSettings = document.getElementById('saveSettings');
+        const ghTokenInput = document.getElementById('ghToken');
+        const ghRepoInput = document.getElementById('ghRepo');
+
+        settingsBtn.onclick = () => {
+            ghTokenInput.value = localStorage.getItem('gh_token') || '';
+            ghRepoInput.value = localStorage.getItem('gh_repo') || '';
+            settingsModal.classList.remove('opacity-0', 'pointer-events-none');
+        };
+
+        closeSettings.onclick = () => {
+            settingsModal.classList.add('opacity-0', 'pointer-events-none');
+        };
+
+        saveSettings.onclick = () => {
+            localStorage.setItem('gh_token', ghTokenInput.value.trim());
+            localStorage.setItem('gh_repo', ghRepoInput.value.trim());
+            settingsModal.classList.add('opacity-0', 'pointer-events-none');
+            alert("Settings saved!");
+        };
+
+        skipBtn.onclick = nextWord;
+
+        function nextWord() {
+            currentIndex++;
+            localStorage.setItem('banjara_index', currentIndex);
+            updateUI();
+        }
+
+        // Initialize
+        if (typeof BANJARA_WORDS !== 'undefined') {
+            updateUI();
+        } else {
+            banjaraEl.textContent = "Error";
+            englishEl.textContent = "Could not load dictionary.";
+        }
+    </script>
+</body>
+
+</html>
