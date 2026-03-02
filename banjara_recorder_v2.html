@@ -24,8 +24,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
             margin: 0;
+            padding: 2rem 0;
         }
 
         .glass-card {
@@ -33,17 +33,17 @@
             backdrop-filter: blur(var(--glass-blur));
             border: 1px solid var(--glass-border);
             border-radius: 2rem;
-            padding: 3rem;
+            padding: 2.5rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             width: 90%;
-            max-width: 600px;
+            max-width: 680px;
             text-align: center;
             position: relative;
             z-index: 10;
         }
 
         .ambient-glow {
-            position: absolute;
+            position: fixed;
             width: 400px;
             height: 400px;
             background: rgba(255, 255, 255, 0.05);
@@ -68,7 +68,7 @@
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 2px;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             overflow: hidden;
         }
 
@@ -80,45 +80,92 @@
         }
 
         .word-display {
-            margin-bottom: 3rem;
+            margin-bottom: 1.5rem;
             transition: transform 0.3s, opacity 0.3s;
         }
 
         .banjara-text {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 700;
             line-height: 1.2;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
             letter-spacing: -0.02em;
         }
 
         .english-text {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             color: rgba(255, 255, 255, 0.5);
             font-style: italic;
             font-weight: 300;
         }
 
+        .example-sentence {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: left;
+        }
+
+        .example-sentence .label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.35);
+            margin-bottom: 0.35rem;
+        }
+
+        .example-sentence .sentence {
+            font-style: italic;
+        }
+
+        .section-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 1rem 0;
+        }
+
+        .rec-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rec-section .rec-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.4);
+            min-width: 80px;
+            text-align: left;
+        }
+
         .btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 1rem;
-            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            padding: 0.65rem 1rem;
+            font-size: 0.85rem;
             font-weight: 600;
             transition: all 0.2s;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
             cursor: pointer;
-            width: 100%;
-            margin-top: 1rem;
+            color: #fff;
         }
 
         .btn:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .btn:active:not(:disabled) {
@@ -141,15 +188,39 @@
             color: #000;
         }
 
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-rec {
+            flex: 1;
+        }
+
+        .btn-play {
+            min-width: 40px;
+            padding: 0.5rem;
+        }
+
+        .btn-recording {
+            background: rgba(255, 68, 68, 0.15) !important;
+            border-color: rgba(255, 68, 68, 0.4) !important;
+            color: #ff4444 !important;
+        }
+
+        .btn-done {
+            border-color: rgba(100, 255, 100, 0.3) !important;
+        }
+
         .recording-indicator {
             position: absolute;
-            top: 2rem;
-            right: 2rem;
+            top: 1.5rem;
+            right: 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: #ff4444;
@@ -187,9 +258,33 @@
             display: flex;
             justify-content: space-between;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: rgba(255, 255, 255, 0.4);
             margin-bottom: 0.5rem;
+        }
+
+        .notes-area {
+            width: 100%;
+            min-height: 70px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-top: 0.25rem;
+        }
+
+        .notes-area:focus {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .notes-area::placeholder {
+            color: rgba(255, 255, 255, 0.25);
         }
 
         .fade-out {
@@ -200,6 +295,17 @@
         .fade-in {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        .action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .action-row .btn {
+            width: 100%;
         }
     </style>
 </head>
@@ -222,41 +328,74 @@
             <div id="progressFill" class="progress-fill"></div>
         </div>
 
+        <!-- Word Display -->
         <div id="wordDisplay" class="word-display">
             <div id="banjaraWord" class="banjara-text">Loading...</div>
             <div id="englishMeaning" class="english-text">Please wait</div>
         </div>
 
-        <div class="space-y-4">
-            <button id="recordBtn" class="btn btn-primary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                    <line x1="12" y1="19" x2="12" y2="22"></line>
-                </svg>
-                <span id="recordText">Start Recording</span>
-            </button>
-
-            <button id="playbackBtn" class="btn" disabled>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                Listen Back
-            </button>
-
-            <div class="grid grid-cols-2 gap-4">
-                <button id="skipBtn" class="btn">Skip Word</button>
-                <button id="saveBtn" class="btn" disabled>Save & Next</button>
-            </div>
+        <!-- Example Sentence -->
+        <div id="exampleBox" class="example-sentence">
+            <div class="label">Example Sentence</div>
+            <div id="exampleSentence" class="sentence"></div>
         </div>
 
-        <div class="mt-8 text-[10px] text-zinc-600 uppercase tracking-widest font-mono">
-            Banjara AI • Data Collection Tool v2.0
+        <!-- Record Word -->
+        <div class="rec-section">
+            <span class="rec-label">Word</span>
+            <button id="recWordBtn" class="btn btn-primary btn-sm btn-rec">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                </svg>
+                <span id="recWordText">Record Word</span>
+            </button>
+            <button id="playWordBtn" class="btn btn-sm btn-play" disabled title="Play word">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Record Sentence -->
+        <div class="rec-section">
+            <span class="rec-label">Sentence</span>
+            <button id="recSentBtn" class="btn btn-sm btn-rec" style="background:rgba(255,255,255,0.08);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                </svg>
+                <span id="recSentText">Record Sentence</span>
+            </button>
+            <button id="playSentBtn" class="btn btn-sm btn-play" disabled title="Play sentence">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+            </button>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Notes -->
+        <div style="text-align:left; margin-bottom: 0.25rem;">
+            <span class="rec-label" style="min-width:auto;">Notes (word-wise meaning)</span>
+        </div>
+        <textarea id="notesArea" class="notes-area"
+            placeholder="e.g. apan-we, chattameer mundang-in front of law, vatemar rrenu-abide"></textarea>
+
+        <!-- Action Buttons -->
+        <div class="action-row">
+            <button id="skipBtn" class="btn">Skip Word</button>
+            <button id="saveBtn" class="btn" disabled>Save & Next</button>
+        </div>
+
+        <div class="mt-6 text-[10px] text-zinc-600 uppercase tracking-widest font-mono">
+            Banjara AI • Data Collection Tool v2.1
         </div>
 
         <!-- Settings Cog -->
-        <button id="settingsBtn" class="absolute top-8 left-8 text-zinc-500 hover:text-white transition-colors">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="settingsBtn" class="absolute top-6 left-6 text-zinc-500 hover:text-white transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path
                     d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
                 </path>
@@ -297,29 +436,425 @@
     <script src="banjara_unique_words_with_english.js"></script>
 
     <script>
-        let currentIndex = parseInt(localStorage.getItem('banjara_index')) || 0;
-        let mediaRecorder;
-        let audioBlobs = [];
-        let currenAudioBlob = null;
+        // ─── Example Sentences ───
+        function generateExample(englishWord) {
+            const w = englishWord.toLowerCase().trim();
+            const examples = {
+                'abide': 'We will abide by the law.',
+                'ability': 'She has the ability to learn quickly.',
+                'above': 'The bird flew above the trees.',
+                'absent': 'He was absent from school today.',
+                'absorb': 'The sponge will absorb the water.',
+                'accept': 'I accept your invitation.',
+                'accident': 'There was an accident on the road.',
+                'across': 'Walk across the bridge carefully.',
+                'action': 'We need to take action now.',
+                'add': 'Please add sugar to the tea.',
+                'afraid': 'The child is afraid of the dark.',
+                'after': 'We will eat after the work.',
+                'again': 'Please say that again.',
+                'age': 'What is your age?',
+                'agree': 'I agree with your opinion.',
+                'ahead': 'Go ahead, I will follow.',
+                'air': 'The air is fresh in the morning.',
+                'alive': 'The fish is still alive.',
+                'all': 'All the children are playing.',
+                'alone': 'She lives alone in the village.',
+                'always': 'He always speaks the truth.',
+                'angry': 'Father was angry today.',
+                'animal': 'The animal is drinking water.',
+                'answer': 'Give me the answer quickly.',
+                'appear': 'Stars appear at night.',
+                'area': 'This area is very quiet.',
+                'arm': 'He hurt his arm.',
+                'arrive': 'When will you arrive?',
+                'ask': 'Ask him the question.',
+                'attack': 'The dog will attack strangers.',
+                'aunt': 'My aunt lives in Hyderabad.',
+                'avoid': 'Avoid eating bad food.',
+                'baby': 'The baby is sleeping.',
+                'back': 'Come back home soon.',
+                'bad': 'This food tastes bad.',
+                'bag': 'Put the books in the bag.',
+                'beautiful': 'The flower is very beautiful.',
+                'because': 'I stayed home because of rain.',
+                'bed': 'The bed is very comfortable.',
+                'before': 'Wash your hands before eating.',
+                'begin': 'Let us begin the work.',
+                'behind': 'The cat is hiding behind the door.',
+                'believe': 'I believe in hard work.',
+                'below': 'The river flows below the bridge.',
+                'big': 'This is a big house.',
+                'bird': 'The bird is singing.',
+                'bite': 'The dog may bite you.',
+                'black': 'She wore a black dress.',
+                'blood': 'Blood is red in color.',
+                'blow': 'The wind will blow strongly.',
+                'body': 'Keep your body healthy.',
+                'bone': 'The dog is chewing a bone.',
+                'book': 'Read this book carefully.',
+                'born': 'The baby was born yesterday.',
+                'both': 'Both brothers are tall.',
+                'bottom': 'The stone sank to the bottom.',
+                'boy': 'The boy is playing cricket.',
+                'bread': 'Give me a piece of bread.',
+                'break': 'Do not break the glass.',
+                'bridge': 'We crossed the bridge.',
+                'bright': 'The sun is very bright.',
+                'bring': 'Bring some water please.',
+                'brother': 'My brother is older than me.',
+                'build': 'They will build a new house.',
+                'burn': 'Do not burn the paper.',
+                'buy': 'I want to buy vegetables.',
+                'call': 'Call me in the evening.',
+                'care': 'Take care of your health.',
+                'carry': 'Carry this bag for me.',
+                'catch': 'Catch the ball!',
+                'cattle': 'The cattle are grazing.',
+                'change': 'We need to change our habits.',
+                'child': 'The child is playing outside.',
+                'clean': 'Keep your house clean.',
+                'close': 'Close the door please.',
+                'cloth': 'This cloth is very soft.',
+                'cold': 'The water is very cold.',
+                'come': 'Come to my house tomorrow.',
+                'cook': 'She will cook dinner tonight.',
+                'country': 'India is a great country.',
+                'cow': 'The cow gives us milk.',
+                'cry': 'Do not cry, be brave.',
+                'cut': 'Cut the rope with scissors.',
+                'dance': 'The children love to dance.',
+                'dark': 'It is dark outside.',
+                'daughter': 'His daughter is very smart.',
+                'day': 'Today is a good day.',
+                'dead': 'The tree is dead.',
+                'deep': 'The well is very deep.',
+                'die': 'Plants die without water.',
+                'dog': 'The dog is barking.',
+                'door': 'Open the door.',
+                'down': 'Sit down please.',
+                'dream': 'I had a good dream.',
+                'drink': 'Drink plenty of water.',
+                'dry': 'The clothes are dry now.',
+                'ear': 'He has a pain in his ear.',
+                'earth': 'The earth is round.',
+                'eat': 'Eat your food slowly.',
+                'egg': 'The hen laid an egg.',
+                'end': 'This is the end of the road.',
+                'enemy': 'He has no enemy.',
+                'enough': 'We have enough rice.',
+                'enter': 'Enter the room quietly.',
+                'evening': 'The evening is beautiful.',
+                'eye': 'She has bright eyes.',
+                'face': 'Wash your face.',
+                'fall': 'Leaves fall in autumn.',
+                'family': 'My family is very large.',
+                'far': 'The city is very far from here.',
+                'farm': 'He works on the farm.',
+                'fast': 'The horse runs fast.',
+                'father': 'My father is a farmer.',
+                'fear': 'Do not live in fear.',
+                'feel': 'I feel happy today.',
+                'field': 'The farmer is in the field.',
+                'fight': 'Do not fight with anyone.',
+                'find': 'I cannot find my book.',
+                'finger': 'She cut her finger.',
+                'fire': 'Fire is very dangerous.',
+                'fish': 'The fish is fresh.',
+                'fly': 'Birds can fly high.',
+                'food': 'The food is delicious.',
+                'foot': 'My foot is hurting.',
+                'forest': 'The forest is very dense.',
+                'forget': 'Do not forget your promise.',
+                'friend': 'He is my best friend.',
+                'fruit': 'Eat fresh fruit daily.',
+                'full': 'The glass is full of water.',
+                'garden': 'The garden is beautiful.',
+                'girl': 'The girl is reading a book.',
+                'give': 'Give me some water.',
+                'go': 'Go to school on time.',
+                'god': 'God is great.',
+                'gold': 'Gold is very precious.',
+                'good': 'This is a good idea.',
+                'grass': 'The grass is green.',
+                'great': 'He is a great leader.',
+                'green': 'The trees are green.',
+                'grow': 'Plants grow in sunlight.',
+                'hair': 'Her hair is very long.',
+                'hand': 'Wash your hands properly.',
+                'happy': 'The children are happy.',
+                'hard': 'This work is very hard.',
+                'head': 'He nodded his head.',
+                'hear': 'I can hear the music.',
+                'heart': 'His heart is pure.',
+                'heavy': 'This box is very heavy.',
+                'help': 'Please help me.',
+                'here': 'Come here quickly.',
+                'hide': 'Do not hide the truth.',
+                'high': 'The mountain is very high.',
+                'hill': 'We climbed the hill.',
+                'hold': 'Hold my hand.',
+                'home': 'Let us go home.',
+                'hope': 'I hope for the best.',
+                'horse': 'The horse is running.',
+                'hot': 'The tea is very hot.',
+                'house': 'This is my house.',
+                'hungry': 'The child is hungry.',
+                'hunt': 'They went to hunt.',
+                'husband': 'Her husband is a teacher.',
+                'inside': 'Come inside the house.',
+                'iron': 'Iron is a strong metal.',
+                'jump': 'The frog can jump high.',
+                'keep': 'Keep this book safely.',
+                'kill': 'Do not kill animals.',
+                'kind': 'She is a kind person.',
+                'king': 'The king ruled wisely.',
+                'knee': 'He fell on his knee.',
+                'know': 'I know the answer.',
+                'lake': 'The lake is very clean.',
+                'land': 'This is fertile land.',
+                'language': 'Banjara is a beautiful language.',
+                'large': 'The elephant is very large.',
+                'last': 'This is the last chance.',
+                'laugh': 'The children laugh together.',
+                'lead': 'He will lead the group.',
+                'leaf': 'The leaf is green.',
+                'learn': 'We must learn every day.',
+                'leave': 'Do not leave me alone.',
+                'left': 'Turn left at the road.',
+                'leg': 'His leg was injured.',
+                'lie': 'Never tell a lie.',
+                'life': 'Life is precious.',
+                'lift': 'Lift the box carefully.',
+                'light': 'Turn on the light.',
+                'listen': 'Listen to the teacher.',
+                'live': 'We live in a village.',
+                'long': 'The river is very long.',
+                'look': 'Look at the sky.',
+                'lose': 'Do not lose hope.',
+                'love': 'I love my family.',
+                'low': 'The water level is low.',
+                'man': 'The man is working.',
+                'many': 'Many people came today.',
+                'market': 'She went to the market.',
+                'medicine': 'Take your medicine on time.',
+                'milk': 'Drink milk every day.',
+                'mind': 'Keep your mind calm.',
+                'money': 'Save your money wisely.',
+                'month': 'This month is very hot.',
+                'moon': 'The moon is shining tonight.',
+                'morning': 'Good morning to everyone.',
+                'mother': 'My mother cooks well.',
+                'mountain': 'The mountain is covered with snow.',
+                'mouth': 'Open your mouth.',
+                'move': 'Move forward slowly.',
+                'music': 'I love listening to music.',
+                'name': 'What is your name?',
+                'near': 'The school is near my house.',
+                'neck': 'She wore a necklace on her neck.',
+                'need': 'I need your help.',
+                'new': 'I bought a new dress.',
+                'news': 'What is the latest news?',
+                'night': 'The night is very quiet.',
+                'nose': 'He has a sharp nose.',
+                'now': 'Come here right now.',
+                'number': 'Write your phone number.',
+                'old': 'The old man is wise.',
+                'open': 'Open the window.',
+                'outside': 'Wait outside for a moment.',
+                'pain': 'I have pain in my back.',
+                'path': 'Follow the right path.',
+                'people': 'Many people live here.',
+                'place': 'This is a beautiful place.',
+                'plant': 'Plant a tree today.',
+                'play': 'Children love to play.',
+                'poor': 'Help the poor people.',
+                'pull': 'Pull the rope strongly.',
+                'push': 'Push the door to open.',
+                'put': 'Put the book on the table.',
+                'rain': 'The rain is falling heavily.',
+                'read': 'Read the book carefully.',
+                'red': 'The apple is red.',
+                'remember': 'Remember your roots.',
+                'rest': 'Take some rest now.',
+                'rich': 'He is a rich man.',
+                'right': 'Turn right at the crossing.',
+                'river': 'The river is flowing.',
+                'road': 'The road is very long.',
+                'root': 'The roots are strong.',
+                'rope': 'Tie the rope tightly.',
+                'round': 'The earth is round.',
+                'run': 'Run to the finish line.',
+                'sad': 'She felt very sad.',
+                'safe': 'Keep the children safe.',
+                'salt': 'Add some salt to the food.',
+                'same': 'We are from the same village.',
+                'sand': 'Children play in the sand.',
+                'say': 'Say something kind.',
+                'sea': 'The sea is vast.',
+                'search': 'Search for the lost key.',
+                'see': 'I can see the mountain.',
+                'seed': 'Plant the seed in soil.',
+                'sell': 'He will sell the cow.',
+                'send': 'Send the letter today.',
+                'sharp': 'The knife is sharp.',
+                'she': 'She is my sister.',
+                'sheep': 'The sheep are on the hill.',
+                'shine': 'The sun will shine tomorrow.',
+                'short': 'The rope is too short.',
+                'shout': 'Do not shout in class.',
+                'shut': 'Shut the gate properly.',
+                'sick': 'The boy is sick today.',
+                'side': 'Stand on this side.',
+                'sing': 'She loves to sing songs.',
+                'sister': 'My sister is kind.',
+                'sit': 'Sit down quietly.',
+                'skin': 'Protect your skin from sun.',
+                'sky': 'The sky is blue.',
+                'sleep': 'Sleep early at night.',
+                'slow': 'Walk slowly on wet roads.',
+                'small': 'This is a small house.',
+                'smell': 'The flower has a sweet smell.',
+                'smile': 'Always keep a smile.',
+                'smoke': 'Smoke is harmful to health.',
+                'snake': 'The snake is dangerous.',
+                'snow': 'The mountains have snow.',
+                'soil': 'The soil is fertile.',
+                'son': 'His son studies well.',
+                'song': 'Sing a folk song.',
+                'speak': 'Speak in Banjara.',
+                'stand': 'Stand up straight.',
+                'star': 'The stars are shining.',
+                'start': 'Start the work now.',
+                'stay': 'Stay here for a while.',
+                'steal': 'Do not steal anything.',
+                'stone': 'The stone is heavy.',
+                'stop': 'Stop the vehicle here.',
+                'storm': 'A storm is coming.',
+                'story': 'Tell me a story.',
+                'strong': 'The ox is very strong.',
+                'sugar': 'Add sugar to the tea.',
+                'sun': 'The sun rises in the east.',
+                'sweet': 'This mango is very sweet.',
+                'swim': 'The fish can swim.',
+                'table': 'Put the plate on the table.',
+                'tail': 'The dog wags its tail.',
+                'take': 'Take this medicine.',
+                'talk': 'Talk to your elders.',
+                'tall': 'The tree is very tall.',
+                'taste': 'Taste this food.',
+                'teach': 'Teach me Banjara.',
+                'tear': 'A tear rolled from her eye.',
+                'tell': 'Tell me the truth.',
+                'test': 'The test is tomorrow.',
+                'thank': 'Thank you for your help.',
+                'thick': 'The wall is thick.',
+                'thin': 'The rope is thin.',
+                'think': 'Think before you speak.',
+                'throw': 'Throw the ball to me.',
+                'tie': 'Tie the knot firmly.',
+                'time': 'Time waits for no one.',
+                'today': 'Today is a festival.',
+                'tomorrow': 'Come back tomorrow.',
+                'tongue': 'The tongue can taste food.',
+                'tooth': 'Brush your teeth daily.',
+                'top': 'Climb to the top.',
+                'touch': 'Do not touch the fire.',
+                'town': 'The town is very busy.',
+                'tree': 'Sit under the tree.',
+                'trouble': 'Do not trouble others.',
+                'true': 'This story is true.',
+                'trust': 'I trust my friends.',
+                'turn': 'Turn around slowly.',
+                'uncle': 'My uncle is a doctor.',
+                'under': 'The cat is under the table.',
+                'understand': 'I understand Banjara well.',
+                'up': 'Stand up now.',
+                'use': 'Use water carefully.',
+                'village': 'Our village is beautiful.',
+                'voice': 'She has a sweet voice.',
+                'wait': 'Wait for me.',
+                'walk': 'Walk on the right side.',
+                'wall': 'The wall is painted white.',
+                'want': 'I want to learn Banjara.',
+                'war': 'War is destructive.',
+                'warm': 'The fire keeps us warm.',
+                'wash': 'Wash the clothes today.',
+                'watch': 'Watch the sunset.',
+                'water': 'Drink clean water.',
+                'weak': 'He is feeling weak.',
+                'wear': 'Wear clean clothes.',
+                'weather': 'The weather is pleasant.',
+                'well': 'The well has fresh water.',
+                'wet': 'My clothes are wet.',
+                'white': 'The milk is white.',
+                'wide': 'The road is wide.',
+                'wife': 'His wife is a teacher.',
+                'wild': 'Wild animals live in forests.',
+                'win': 'We will win this game.',
+                'wind': 'The wind is blowing.',
+                'wing': 'The bird has strong wings.',
+                'wise': 'The old man is wise.',
+                'wish': 'I wish you good luck.',
+                'with': 'Come with me.',
+                'woman': 'The woman is cooking.',
+                'wood': 'The table is made of wood.',
+                'word': 'Learn a new word daily.',
+                'work': 'Work hard every day.',
+                'world': 'The world is beautiful.',
+                'write': 'Write your name here.',
+                'wrong': 'Do not do wrong things.',
+                'year': 'This year is 2026.',
+                'yes': 'Yes, I will come.',
+                'yesterday': 'It rained yesterday.',
+                'young': 'The young boy is brave.',
+            };
 
+            if (examples[w]) return examples[w];
+
+            // Auto-generate a simple sentence
+            const vowels = 'aeiou';
+            const article = vowels.includes(w[0]) ? 'an' : 'a';
+            const words = w.split(' ');
+            if (words.length > 2) return `This is about "${englishWord}".`;
+            // Capitalize first letter
+            const cap = w.charAt(0).toUpperCase() + w.slice(1);
+            return `${cap} is important in our life.`;
+        }
+
+        // ─── State ───
+        let currentIndex = parseInt(localStorage.getItem('banjara_index')) || 0;
+        let wordRecorder, sentRecorder;
+        let wordBlobs = [], sentBlobs = [];
+        let wordAudioBlob = null, sentAudioBlob = null;
+
+        // ─── DOM ───
         const banjaraEl = document.getElementById('banjaraWord');
         const englishEl = document.getElementById('englishMeaning');
+        const exampleSentence = document.getElementById('exampleSentence');
         const progressFill = document.getElementById('progressFill');
         const progressPercent = document.getElementById('progressPercent');
-        const wordCount = document.getElementById('wordCount');
-        const recordBtn = document.getElementById('recordBtn');
-        const recordText = document.getElementById('recordText');
-        const playbackBtn = document.getElementById('playbackBtn');
+        const wordCountEl = document.getElementById('wordCount');
+        const recWordBtn = document.getElementById('recWordBtn');
+        const recWordText = document.getElementById('recWordText');
+        const playWordBtn = document.getElementById('playWordBtn');
+        const recSentBtn = document.getElementById('recSentBtn');
+        const recSentText = document.getElementById('recSentText');
+        const playSentBtn = document.getElementById('playSentBtn');
         const saveBtn = document.getElementById('saveBtn');
         const skipBtn = document.getElementById('skipBtn');
+        const notesArea = document.getElementById('notesArea');
         const recordingIndicator = document.getElementById('recordingIndicator');
         const wordDisplay = document.getElementById('wordDisplay');
 
+        // ─── UI Update ───
         function updateUI() {
             if (currentIndex >= BANJARA_WORDS.length) {
                 banjaraEl.textContent = "Done!";
                 englishEl.textContent = "All words recorded.";
-                recordBtn.disabled = true;
+                exampleSentence.textContent = "";
+                recWordBtn.disabled = true;
+                recSentBtn.disabled = true;
                 skipBtn.disabled = true;
                 return;
             }
@@ -330,167 +865,218 @@
             setTimeout(() => {
                 banjaraEl.textContent = current.banjara;
                 englishEl.textContent = current.english;
+                exampleSentence.textContent = generateExample(current.english);
                 wordDisplay.classList.remove('fade-out');
                 wordDisplay.classList.add('fade-in');
-            }, 300);
+            }, 250);
 
             const progress = (currentIndex / BANJARA_WORDS.length) * 100;
             progressFill.style.width = `${progress}%`;
             progressPercent.textContent = `${Math.round(progress)}% COMPLETE`;
-            wordCount.textContent = `${currentIndex}/${BANJARA_WORDS.length} WORDS`;
+            wordCountEl.textContent = `${currentIndex}/${BANJARA_WORDS.length} WORDS`;
 
-            playbackBtn.disabled = true;
+            // Reset state
+            playWordBtn.disabled = true;
+            playSentBtn.disabled = true;
             saveBtn.disabled = true;
-            currenAudioBlob = null;
+            wordAudioBlob = null;
+            sentAudioBlob = null;
+            notesArea.value = '';
+            recWordText.textContent = 'Record Word';
+            recSentText.textContent = 'Record Sentence';
+            recWordBtn.classList.remove('btn-recording', 'btn-done');
+            recSentBtn.classList.remove('btn-recording', 'btn-done');
+            checkSaveReady();
         }
 
-        async function startRecording() {
+        function checkSaveReady() {
+            // Enable save if at least word audio is recorded
+            saveBtn.disabled = !wordAudioBlob;
+        }
+
+        // ─── Generic Recorder ───
+        async function startRec(type) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioBlobs = [];
+                const recorder = new MediaRecorder(stream);
+                const blobs = [];
 
-                mediaRecorder.ondataavailable = (event) => {
-                    audioBlobs.push(event.data);
+                recorder.ondataavailable = (e) => blobs.push(e.data);
+                recorder.onstop = () => {
+                    const blob = new Blob(blobs, { type: 'audio/wav' });
+                    if (type === 'word') {
+                        wordAudioBlob = blob;
+                        playWordBtn.disabled = false;
+                        recWordBtn.classList.remove('btn-recording');
+                        recWordBtn.classList.add('btn-done');
+                        recWordText.textContent = 'Re-record Word';
+                    } else {
+                        sentAudioBlob = blob;
+                        playSentBtn.disabled = false;
+                        recSentBtn.classList.remove('btn-recording');
+                        recSentBtn.classList.add('btn-done');
+                        recSentText.textContent = 'Re-record Sentence';
+                    }
+                    recordingIndicator.classList.remove('active');
+                    checkSaveReady();
                 };
 
-                mediaRecorder.onstop = () => {
-                    currenAudioBlob = new Blob(audioBlobs, { type: 'audio/wav' });
-                    playbackBtn.disabled = false;
-                    saveBtn.disabled = false;
-                };
-
-                mediaRecorder.start();
-                recordText.textContent = "Stop Recording";
-                recordBtn.classList.add('bg-red-900/20', 'text-red-500');
+                recorder.start();
                 recordingIndicator.classList.add('active');
+
+                if (type === 'word') {
+                    wordRecorder = recorder;
+                    recWordBtn.classList.add('btn-recording');
+                    recWordText.textContent = 'Stop';
+                } else {
+                    sentRecorder = recorder;
+                    recSentBtn.classList.add('btn-recording');
+                    recSentText.textContent = 'Stop';
+                }
             } catch (err) {
-                console.error("Error accessing microphone:", err);
                 alert("Microphone access denied.");
             }
         }
 
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state === "recording") {
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        function stopRec(type) {
+            const rec = type === 'word' ? wordRecorder : sentRecorder;
+            if (rec && rec.state === 'recording') {
+                rec.stop();
+                rec.stream.getTracks().forEach(t => t.stop());
             }
-            recordText.textContent = "Record Again";
-            recordBtn.classList.remove('bg-red-900/20', 'text-red-500');
-            recordingIndicator.classList.remove('active');
         }
 
-        recordBtn.onclick = () => {
-            if (mediaRecorder && mediaRecorder.state === "recording") {
-                stopRecording();
-            } else {
-                startRecording();
-            }
+        recWordBtn.onclick = () => {
+            if (wordRecorder && wordRecorder.state === 'recording') stopRec('word');
+            else startRec('word');
         };
 
-        playbackBtn.onclick = () => {
-            if (currenAudioBlob) {
-                const url = URL.createObjectURL(currenAudioBlob);
-                const audio = new Audio(url);
-                audio.play();
-            }
+        recSentBtn.onclick = () => {
+            if (sentRecorder && sentRecorder.state === 'recording') stopRec('sentence');
+            else startRec('sentence');
         };
 
-        async function saveToGitHub(blob, filename) {
+        playWordBtn.onclick = () => {
+            if (wordAudioBlob) new Audio(URL.createObjectURL(wordAudioBlob)).play();
+        };
+
+        playSentBtn.onclick = () => {
+            if (sentAudioBlob) new Audio(URL.createObjectURL(sentAudioBlob)).play();
+        };
+
+        // ─── GitHub Upload ───
+        async function uploadToGitHub(blob, path, commitMsg) {
             const token = localStorage.getItem('gh_token');
             const repo = localStorage.getItem('gh_repo');
 
             if (!token || !repo) {
-                console.log("No GitHub config found, downloading locally...");
+                // Download locally
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = filename;
+                a.download = path.split('/').pop();
                 a.click();
                 return true;
             }
 
             try {
                 const reader = new FileReader();
-                const base64Promise = new Promise(resolve => {
+                const b64 = await new Promise(resolve => {
                     reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(blob);
                 });
-                reader.readAsDataURL(blob);
-                const content = await base64Promise;
 
-                const path = `audio/${filename}`;
                 const url = `https://api.github.com/repos/${repo}/contents/${path}`;
-
-                const response = await fetch(url, {
+                const resp = await fetch(url, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `token ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        message: `Record Banjara word: ${filename}`,
-                        content: content,
-                        branch: 'main'
-                    })
+                    body: JSON.stringify({ message: commitMsg, content: b64, branch: 'main' })
                 });
 
-                if (response.ok) {
-                    return true;
-                } else {
-                    const err = await response.json();
-                    throw new Error(err.message);
-                }
+                if (resp.ok) return true;
+                const err = await resp.json();
+                throw new Error(err.message);
             } catch (err) {
-                console.error("GitHub Upload Error:", err);
+                console.error("Upload Error:", err);
                 alert("GitHub Upload Failed: " + err.message);
                 return false;
             }
         }
 
-        saveBtn.onclick = async () => {
-            if (!currenAudioBlob) return;
+        async function uploadText(text, path, commitMsg) {
+            const token = localStorage.getItem('gh_token');
+            const repo = localStorage.getItem('gh_repo');
+            if (!token || !repo) return true;
 
+            try {
+                const content = btoa(unescape(encodeURIComponent(text)));
+                const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+                const resp = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: commitMsg, content: content, branch: 'main' })
+                });
+                if (resp.ok) return true;
+                const err = await resp.json();
+                throw new Error(err.message);
+            } catch (err) {
+                console.error("Upload Error:", err);
+                return false;
+            }
+        }
+
+        // ─── Save ───
+        saveBtn.onclick = async () => {
+            if (!wordAudioBlob) return;
             saveBtn.disabled = true;
-            const originalText = saveBtn.textContent;
             saveBtn.textContent = "Saving...";
 
-            const filename = `${BANJARA_WORDS[currentIndex].english.replace(/[^\w\s]/g, '').replace(/\s+/g, '_')}.wav`;
+            const current = BANJARA_WORDS[currentIndex];
+            const safeName = current.english.replace(/[^\w\s]/g, '').replace(/\s+/g, '_');
 
-            const success = await saveToGitHub(currenAudioBlob, filename);
+            // 1. Upload word audio
+            const wordOk = await uploadToGitHub(wordAudioBlob,
+                `audio/${safeName}.wav`,
+                `Record word: ${current.english}`);
 
-            if (success) {
-                nextWord();
-                saveBtn.textContent = originalText;
-            } else {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
+            // 2. Upload sentence audio (if recorded)
+            let sentOk = true;
+            if (sentAudioBlob) {
+                sentOk = await uploadToGitHub(sentAudioBlob,
+                    `audio_sentences/${safeName}.wav`,
+                    `Record sentence for: ${current.english}`);
             }
+
+            // 3. Upload notes (if provided)
+            let notesOk = true;
+            const notes = notesArea.value.trim();
+            if (notes) {
+                const jsonData = JSON.stringify({
+                    banjara: current.banjara,
+                    english: current.english,
+                    example_sentence: exampleSentence.textContent,
+                    notes: notes,
+                    has_word_audio: true,
+                    has_sentence_audio: !!sentAudioBlob
+                }, null, 2);
+                notesOk = await uploadText(jsonData,
+                    `notes/${safeName}.json`,
+                    `Notes for: ${current.english}`);
+            }
+
+            if (wordOk && sentOk && notesOk) {
+                nextWord();
+            }
+            saveBtn.textContent = "Save & Next";
+            saveBtn.disabled = false;
         };
 
-        // Settings Logic
-        const settingsBtn = document.getElementById('settingsBtn');
-        const settingsModal = document.getElementById('settingsModal');
-        const closeSettings = document.getElementById('closeSettings');
-        const saveSettings = document.getElementById('saveSettings');
-        const ghTokenInput = document.getElementById('ghToken');
-        const ghRepoInput = document.getElementById('ghRepo');
-
-        settingsBtn.onclick = () => {
-            ghTokenInput.value = localStorage.getItem('gh_token') || '';
-            ghRepoInput.value = localStorage.getItem('gh_repo') || '';
-            settingsModal.classList.remove('opacity-0', 'pointer-events-none');
-        };
-
-        closeSettings.onclick = () => {
-            settingsModal.classList.add('opacity-0', 'pointer-events-none');
-        };
-
-        saveSettings.onclick = () => {
-            localStorage.setItem('gh_token', ghTokenInput.value.trim());
-            localStorage.setItem('gh_repo', ghRepoInput.value.trim());
-            settingsModal.classList.add('opacity-0', 'pointer-events-none');
-            alert("Settings saved!");
-        };
-
+        // ─── Navigation ───
         skipBtn.onclick = nextWord;
 
         function nextWord() {
@@ -499,7 +1085,26 @@
             updateUI();
         }
 
-        // Initialize
+        // ─── Settings ───
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        document.getElementById('closeSettings').onclick = () =>
+            settingsModal.classList.add('opacity-0', 'pointer-events-none');
+
+        settingsBtn.onclick = () => {
+            document.getElementById('ghToken').value = localStorage.getItem('gh_token') || '';
+            document.getElementById('ghRepo').value = localStorage.getItem('gh_repo') || '';
+            settingsModal.classList.remove('opacity-0', 'pointer-events-none');
+        };
+
+        document.getElementById('saveSettings').onclick = () => {
+            localStorage.setItem('gh_token', document.getElementById('ghToken').value.trim());
+            localStorage.setItem('gh_repo', document.getElementById('ghRepo').value.trim());
+            settingsModal.classList.add('opacity-0', 'pointer-events-none');
+            alert("Settings saved!");
+        };
+
+        // ─── Init ───
         if (typeof BANJARA_WORDS !== 'undefined') {
             updateUI();
         } else {
