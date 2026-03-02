@@ -1,0 +1,9 @@
+﻿--- GIT LOG ---
+4f8e8ee Deploy Sentence Recorder v2.0
+46e1515 Redesign: Premium Glassmorphism UI + Sequential flow
+c81516a Fix: Merge hardcoded translations with local storage on init
+62904df Add auto-scroll to first incomplete translation
+d992f20 Update translator with restored progress for IDs 153-184
+--- GIT BRANCH ---
+* main
+  remotes/origin/main
